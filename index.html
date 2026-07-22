@@ -32,7 +32,7 @@
 
         * {
             box-sizing: border-box;
-            touch-action: manipulation; /* Optimisation tactile */
+            touch-action: manipulation;
         }
 
         body {
@@ -80,14 +80,19 @@
             background: rgba(0, 0, 0, 0.4);
         }
 
-        select.timer-select {
-            padding: 10px;
-            border-radius: 8px;
-            border: none;
-            font-size: 1rem;
-            font-weight: bold;
-            background: rgba(255, 255, 255, 0.9);
-            color: var(--text-main);
+        /* Nouveaux boutons de minuteur */
+        .timer-btn {
+            padding: 8px 12px !important;
+            font-size: 0.95rem !important;
+            min-width: 45px;
+        }
+
+        #timer-config-container {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 5px;
+            border-radius: 12px;
+            display: flex;
+            gap: 5px;
         }
 
         .container {
@@ -101,7 +106,6 @@
             gap: 20px;
         }
         
-        /* Grilles adaptatives */
         .layout-1 { grid-template-columns: 1fr; max-width: 600px; margin: 0 auto; }
         .layout-2 { grid-template-columns: repeat(2, 1fr); }
         .layout-4 { grid-template-columns: repeat(2, 1fr); }
@@ -187,11 +191,13 @@
             width: 70px;
             border: none;
             border-radius: 12px;
-            font-size: 1.5rem;
-            font-weight: bold;
+            font-size: 1.8rem;
             color: white;
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .btn-v { background-color: var(--success); }
@@ -241,15 +247,16 @@
         </div>
         
         <div class="controls-group">
-            <select id="timer-config" class="timer-select" onchange="updateGlobalTimer()">
-                <option value="0">Minuteur désactivé</option>
-                <option value="5">5s par question</option>
-                <option value="10">10s par question</option>
-                <option value="15" selected>15s par question</option>
-                <option value="30">30s par question</option>
-                <option value="60">60s par question</option>
-                <option value="120">120s par question</option>
-            </select>
+            <!-- Nouvelle barre de boutons pour le temps -->
+            <div id="timer-config-container">
+                <button class="tool-btn timer-btn" data-val="0" onclick="setTimer(0, this)" title="Désactivé">∞</button>
+                <button class="tool-btn timer-btn" data-val="5" onclick="setTimer(5, this)">5s</button>
+                <button class="tool-btn timer-btn" data-val="10" onclick="setTimer(10, this)">10s</button>
+                <button class="tool-btn timer-btn active" data-val="15" onclick="setTimer(15, this)">15s</button>
+                <button class="tool-btn timer-btn" data-val="30" onclick="setTimer(30, this)">30s</button>
+                <button class="tool-btn timer-btn" data-val="60" onclick="setTimer(60, this)">60s</button>
+                <button class="tool-btn timer-btn" data-val="120" onclick="setTimer(120, this)">120s</button>
+            </div>
 
             <button class="tool-btn layout-btn active" onclick="setLayout(1)">Seul</button>
             <button class="tool-btn layout-btn" onclick="setLayout(2)">Duo</button>
@@ -303,16 +310,26 @@
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
 
-            // En autonomie, on masque le minuteur global pour éviter le stress
-            const timerSelect = document.getElementById('timer-config');
+            const timerContainer = document.getElementById('timer-config-container');
             if (className === 'mode-autonomie') {
-                timerSelect.style.display = 'none';
-                timerConfig = 0; // Désactivé par défaut en autonomie
+                timerContainer.style.display = 'none';
+                timerConfig = 0;
             } else {
-                timerSelect.style.display = 'block';
-                timerConfig = parseInt(timerSelect.value);
+                timerContainer.style.display = 'flex';
+                // Récupérer la valeur du bouton actuellement actif
+                const activeBtn = document.querySelector('.timer-btn.active');
+                timerConfig = activeBtn ? parseInt(activeBtn.dataset.val) : 15;
             }
-            updateGlobalTimer();
+            players.forEach(p => nextQuestion(p.id)); 
+        }
+
+        function setTimer(val, btnElem) {
+            timerConfig = val;
+            document.querySelectorAll('.timer-btn').forEach(btn => btn.classList.remove('active'));
+            if(btnElem) {
+                btnElem.classList.add('active');
+            }
+            players.forEach(p => nextQuestion(p.id)); 
         }
 
         function setLayout(count) {
@@ -348,11 +365,10 @@
                     <div id="display-${i}" class="exercise-display">Prêt ?</div>
                     
                     <div class="input-area">
-                        <!-- type="tel" force l'apparition du pavé numérique sur tablette -->
                         <input type="tel" id="input-${i}" class="answer-input" placeholder="?" onkeydown="if(event.key==='Enter') validate(${i})">
                         <div class="action-btns">
-                            <button class="btn-action btn-x" onclick="clearInput(${i})">X</button>
-                            <button class="btn-action btn-v" onclick="validate(${i})">V</button>
+                            <button class="btn-action btn-x" onclick="clearInput(${i})" title="Corriger">✖</button>
+                            <button class="btn-action btn-v" onclick="validate(${i})" title="Valider">✔</button>
                         </div>
                     </div>
                     
@@ -362,17 +378,9 @@
                 `;
                 ws.appendChild(card);
                 
-                // Pré-sélectionner A
                 document.getElementById(`prog-${i}`).value = 'A';
                 nextQuestion(i);
             }
-        }
-
-        function updateGlobalTimer() {
-            if (currentMode !== 'mode-autonomie') {
-                timerConfig = parseInt(document.getElementById('timer-config').value);
-            }
-            players.forEach(p => nextQuestion(p.id)); 
         }
 
         function nextQuestion(id) {
@@ -466,7 +474,6 @@
             }
         }
 
-        // Initialisation par défaut (1 élève)
         window.onload = () => buildWorkspace(1);
     </script>
 </body>

@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Calcul Mental CP</title>
+    <style>
+        :root {
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --mode-color: #8b5cf6; /* Violet par défaut */
+            --success: #10b981;
+            --danger: #ef4444;
+            --btn-hover: rgba(255, 255, 255, 0.2);
+        }
+
+        body.mode-autonomie {
+            --mode-color: #10b981; /* Vert */
+            --bg-color: #ecfdf5;
+        }
+
+        body.mode-entrainement {
+            --mode-color: #8b5cf6; /* Violet */
+            --bg-color: #f5f3ff;
+        }
+
+        body.mode-evaluation {
+            --mode-color: #f59e0b; /* Orange */
+            --bg-color: #fffbeb;
+        }
+
+        * {
+            box-sizing: border-box;
+            touch-action: manipulation; /* Optimisation tactile */
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s ease;
+        }
+
+        header {
+            background-color: var(--mode-color);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .controls-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        button.tool-btn {
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            border: 2px solid transparent;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button.tool-btn.active {
+            border-color: white;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        select.timer-select {
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--text-main);
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .workspace {
+            display: grid;
+            gap: 20px;
+        }
+        
+        /* Grilles adaptatives */
+        .layout-1 { grid-template-columns: 1fr; max-width: 600px; margin: 0 auto; }
+        .layout-2 { grid-template-columns: repeat(2, 1fr); }
+        .layout-4 { grid-template-columns: repeat(2, 1fr); }
+        @media(min-width: 1024px) {
+            .layout-4 { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        .player-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            border-top: 8px solid var(--mode-color);
+        }
+
+        .player-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            color: #4b5563;
+        }
+
+        .timer-badge {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 1.1rem;
+        }
+
+        select.progression-select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+            font-size: 1rem;
+            background: #f9fafb;
+        }
+
+        .exercise-display {
+            font-size: 2.5rem;
+            text-align: center;
+            font-weight: 800;
+            padding: 20px 0;
+            color: var(--text-main);
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        input.answer-input {
+            flex: 1;
+            padding: 15px;
+            font-size: 2rem;
+            text-align: center;
+            border: 3px solid #e5e7eb;
+            border-radius: 12px;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        input.answer-input:focus {
+            outline: none;
+            border-color: var(--mode-color);
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-action {
+            width: 70px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-v { background-color: var(--success); }
+        .btn-x { background-color: var(--danger); }
+        
+        .btn-action:active { transform: scale(0.95); }
+
+        .feedback-area {
+            min-height: 80px;
+            padding: 15px;
+            border-radius: 12px;
+            background: #f3f4f6;
+            font-size: 1.1rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .feedback-area.correct {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #34d399;
+        }
+
+        .feedback-area.incorrect {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #f87171;
+        }
+
+        .strategy {
+            font-size: 0.95rem;
+            margin-top: 5px;
+            font-style: italic;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body class="mode-entrainement">
+
+    <header>
+        <div class="controls-group">
+            <button class="tool-btn mode-btn" onclick="setMode('autonomie', 'mode-autonomie')">🟢 Autonomie</button>
+            <button class="tool-btn mode-btn active" onclick="setMode('entrainement', 'mode-entrainement')">🟣 Entraînement</button>
+            <button class="tool-btn mode-btn" onclick="setMode('evaluation', 'mode-evaluation')">🟠 Évaluation</button>
+        </div>
+        
+        <div class="controls-group">
+            <select id="timer-config" class="timer-select" onchange="updateGlobalTimer()">
+                <option value="0">Minuteur désactivé</option>
+                <option value="5">5s par question</option>
+                <option value="10">10s par question</option>
+                <option value="15" selected>15s par question</option>
+                <option value="30">30s par question</option>
+                <option value="60">60s par question</option>
+                <option value="120">120s par question</option>
+            </select>
+
+            <button class="tool-btn layout-btn active" onclick="setLayout(1)">Seul</button>
+            <button class="tool-btn layout-btn" onclick="setLayout(2)">Duo</button>
+            <button class="tool-btn layout-btn" onclick="setLayout(4)">Par 4</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div id="app-workspace" class="workspace layout-1">
+            <!-- Cartes générées en JS -->
+        </div>
+    </div>
+
+    <script>
+        const progressionData = {
+            "A": { t: "A. +1 / -1", gen: () => { let n=Math.floor(Math.random()*20)+1; let op=Math.random()>0.5?'+':'-'; return { q: `${n} ${op} 1 =`, r: op==='+'?n+1:n-1, s: "Avancer ou reculer d'une case sur la file numérique."}; }},
+            "B": { t: "B. Maisons de 2, 3", gen: () => { let max=Math.random()>0.5?2:3; let n=Math.floor(Math.random()*(max+1)); return { q: `${n} + ... = ${max}`, r: max-n, s: `Combien manque-t-il pour faire ${max} ?`}; }},
+            "C": { t: "C. Maisons de 4, de 5", gen: () => { let max=Math.random()>0.5?4:5; let n=Math.floor(Math.random()*(max+1)); return { q: `${n} + ... = ${max}`, r: max-n, s: `Utilise les doigts d'une main pour compléter jusqu'à ${max}.`}; }},
+            "D": { t: "D. Décomposition avec 5", gen: () => { let n=Math.floor(Math.random()*5)+1; return { q: `5 + ${n} =`, r: 5+n, s: `Une main pleine (5) et encore ${n} doigts.`}; }},
+            "E": { t: "E. Petits doubles (≤10)", gen: () => { let n=Math.floor(Math.random()*5)+1; return { q: `Double de ${n}`, r: n*2, s: `C'est ${n} + ${n}.`}; }},
+            "F": { t: "F. Presque doubles", gen: () => { let n=Math.floor(Math.random()*4)+2; return { q: `${n} + ${n+1} =`, r: n+(n+1), s: `C'est le double de ${n} plus 1 !`}; }},
+            "G": { t: "G. Maison de 6", gen: () => { let n=Math.floor(Math.random()*7); return { q: `${n} + ... = 6`, r: 6-n, s: `Complément pour faire 6.`}; }},
+            "H": { t: "H. Compléments à 10", gen: () => { let n=Math.floor(Math.random()*11); return { q: `${n} + ... = 10`, r: 10-n, s: `Cherche l'ami de ${n} pour faire 10 (les deux mains).`}; }},
+            "I": { t: "I. Doubles <20", gen: () => { let n=Math.floor(Math.random()*4)+6; return { q: `Double de ${n}`, r: n*2, s: `C'est ${n} + ${n}.`}; }},
+            "J": { t: "J. Ajouter/Soustraire 10", gen: () => { let n=Math.floor(Math.random()*80)+10; let op=Math.random()>0.5?'+':'-'; return { q: `${n} ${op} 10 =`, r: op==='+'?n+10:n-10, s: `Le chiffre des dizaines change, les unités restent pareilles.`}; }},
+            "K": { t: "K. + ou - U (via 10)", gen: () => { let n=Math.floor(Math.random()*8)+2; let op=Math.random()>0.5?'+':'-'; return { q: `10 ${op} ${n} =`, r: op==='+'?10+n:10-n, s: `S'appuyer sur la dizaine entière.`}; }},
+            "L": { t: "L. Maison de 7", gen: () => { let n=Math.floor(Math.random()*8); return { q: `${n} + ... = 7`, r: 7-n, s: `Complément pour faire 7.`}; }},
+            "M": { t: "M. Doubles des dizaines", gen: () => { let n=(Math.floor(Math.random()*4)+1)*10; return { q: `Double de ${n}`, r: n*2, s: `Double le chiffre des dizaines et garde le zéro.`}; }},
+            "N": { t: "N. Maison de 8", gen: () => { let n=Math.floor(Math.random()*9); return { q: `${n} + ... = 8`, r: 8-n, s: `Complément pour faire 8.`}; }},
+            "O": { t: "O. Compléments dizaine sup.", gen: () => { let d=(Math.floor(Math.random()*8)+1)*10; let n=d+Math.floor(Math.random()*9)+1; return { q: `Pour aller de ${n} à ${d+10} ?`, r: (d+10)-n, s: `Cherche le complément à 10 pour l'unité.`}; }},
+            "P": { t: "P. + ou - D", gen: () => { let n=Math.floor(Math.random()*50)+10; let d=(Math.floor(Math.random()*4)+1)*10; let op=Math.random()>0.5?'+':'-'; return { q: `${n} ${op} ${d} =`, r: op==='+'?n+d:n-d, s: `On ajoute/enlève seulement les dizaines.`}; }},
+            "Q": { t: "Q. Moitiés de 2 à 20", gen: () => { let n=(Math.floor(Math.random()*10)+1)*2; return { q: `Moitié de ${n}`, r: n/2, s: `Partage ${n} en deux parts égales.`}; }},
+            "R": { t: "R. Ajouter 20, 30... 90", gen: () => { let n=Math.floor(Math.random()*10)+1; let d=(Math.floor(Math.random()*8)+2)*10; return { q: `${n} + ${d} =`, r: n+d, s: `Mets les unités avec les unités et les dizaines avec les dizaines.`}; }},
+            "S": { t: "S. Ajouter 2 nombres <100", gen: () => { let a=Math.floor(Math.random()*40)+10; let b=Math.floor(Math.random()*40)+10; return { q: `${a} + ${b} =`, r: a+b, s: `Additionne les dizaines ensemble, puis les unités.`}; }},
+            "T": { t: "T. D - U", gen: () => { let d=(Math.floor(Math.random()*8)+2)*10; let u=Math.floor(Math.random()*9)+1; return { q: `${d} - ${u} =`, r: d-u, s: `Recule sur la file numérique en cassant la dizaine.`}; }},
+            "U": { t: "U. Maison de 9", gen: () => { let n=Math.floor(Math.random()*10); return { q: `${n} + ... = 9`, r: 9-n, s: `Complément pour faire 9.`}; }},
+            "V": { t: "V. DU + DU", gen: () => { let a=Math.floor(Math.random()*30)+11; let b=Math.floor(Math.random()*30)+11; return { q: `${a} + ${b} =`, r: a+b, s: `Pose le calcul dans ta tête (D+D et U+U).`}; }},
+            "W": { t: "W. Tables +2 et +7", gen: () => { let a=Math.floor(Math.random()*10)+1; let b=Math.random()>0.5?2:7; return { q: `${a} + ${b} =`, r: a+b, s: `Surcompte de ${b}.`}; }},
+            "X": { t: "X. Tables +3 et +8", gen: () => { let a=Math.floor(Math.random()*10)+1; let b=Math.random()>0.5?3:8; return { q: `${a} + ${b} =`, r: a+b, s: b===8?`Pour +8, fais +10 et enlève 2.`:`Avance de 3 cases.`}; }},
+            "Y": { t: "Y. Tables +4 et +9", gen: () => { let a=Math.floor(Math.random()*10)+1; let b=Math.random()>0.5?4:9; return { q: `${a} + ${b} =`, r: a+b, s: b===9?`Pour +9, fais +10 et enlève 1.`:`Avance de 4.`}; }},
+            "Z": { t: "Z. Tables +5 et +6", gen: () => { let a=Math.floor(Math.random()*10)+1; let b=Math.random()>0.5?5:6; return { q: `${a} + ${b} =`, r: a+b, s: `Utilise les repères du 5 (main complète).`}; }}
+        };
+
+        let currentMode = 'mode-entrainement';
+        let players = [];
+        let timerConfig = 15; 
+
+        function setMode(mode, className) {
+            document.body.className = className;
+            currentMode = className;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // En autonomie, on masque le minuteur global pour éviter le stress
+            const timerSelect = document.getElementById('timer-config');
+            if (className === 'mode-autonomie') {
+                timerSelect.style.display = 'none';
+                timerConfig = 0; // Désactivé par défaut en autonomie
+            } else {
+                timerSelect.style.display = 'block';
+                timerConfig = parseInt(timerSelect.value);
+            }
+            updateGlobalTimer();
+        }
+
+        function setLayout(count) {
+            document.querySelectorAll('.layout-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            buildWorkspace(count);
+        }
+
+        function buildWorkspace(count) {
+            const ws = document.getElementById('app-workspace');
+            ws.className = `workspace layout-${count}`;
+            ws.innerHTML = '';
+            players = [];
+
+            let optionsHTML = '<option value="">-- Choisir une étape CP --</option>';
+            for(let key in progressionData) {
+                optionsHTML += `<option value="${key}">${progressionData[key].t}</option>`;
+            }
+
+            for(let i = 1; i <= count; i++) {
+                players.push({ id: i, timer: null, currentQ: null });
+                
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                card.innerHTML = `
+                    <div class="player-header">
+                        <span>Élève ${i}</span>
+                        <span id="timer-badge-${i}" class="timer-badge" style="display:none;"></span>
+                    </div>
+                    <select id="prog-${i}" class="progression-select" onchange="nextQuestion(${i})">
+                        ${optionsHTML}
+                    </select>
+                    <div id="display-${i}" class="exercise-display">Prêt ?</div>
+                    
+                    <div class="input-area">
+                        <!-- type="tel" force l'apparition du pavé numérique sur tablette -->
+                        <input type="tel" id="input-${i}" class="answer-input" placeholder="?" onkeydown="if(event.key==='Enter') validate(${i})">
+                        <div class="action-btns">
+                            <button class="btn-action btn-x" onclick="clearInput(${i})">X</button>
+                            <button class="btn-action btn-v" onclick="validate(${i})">V</button>
+                        </div>
+                    </div>
+                    
+                    <div id="feedback-${i}" class="feedback-area">
+                        Sélectionne une notion pour démarrer.
+                    </div>
+                `;
+                ws.appendChild(card);
+                
+                // Pré-sélectionner A
+                document.getElementById(`prog-${i}`).value = 'A';
+                nextQuestion(i);
+            }
+        }
+
+        function updateGlobalTimer() {
+            if (currentMode !== 'mode-autonomie') {
+                timerConfig = parseInt(document.getElementById('timer-config').value);
+            }
+            players.forEach(p => nextQuestion(p.id)); 
+        }
+
+        function nextQuestion(id) {
+            const p = players.find(x => x.id === id);
+            const progKey = document.getElementById(`prog-${id}`).value;
+            
+            if(!progKey) return;
+            
+            p.currentQ = progressionData[progKey].gen();
+            document.getElementById(`display-${id}`).innerText = p.currentQ.q;
+            
+            const input = document.getElementById(`input-${id}`);
+            input.value = '';
+            input.disabled = false;
+            
+            const feedback = document.getElementById(`feedback-${id}`);
+            feedback.className = 'feedback-area';
+            feedback.innerHTML = 'À toi de jouer !';
+            
+            startTimer(id);
+        }
+
+        function startTimer(id) {
+            const p = players.find(x => x.id === id);
+            clearInterval(p.timer);
+            
+            const badge = document.getElementById(`timer-badge-${id}`);
+            if(timerConfig === 0) {
+                badge.style.display = 'none';
+                return;
+            }
+            
+            badge.style.display = 'block';
+            let timeLeft = timerConfig;
+            badge.innerText = `${timeLeft}s`;
+            
+            p.timer = setInterval(() => {
+                timeLeft--;
+                badge.innerText = `${timeLeft}s`;
+                if(timeLeft <= 0) {
+                    clearInterval(p.timer);
+                    timeOutFail(id);
+                }
+            }, 1000);
+        }
+
+        function timeOutFail(id) {
+            const p = players.find(x => x.id === id);
+            document.getElementById(`input-${id}`).disabled = true;
+            
+            const feedback = document.getElementById(`feedback-${id}`);
+            feedback.className = 'feedback-area incorrect';
+            feedback.innerHTML = `
+                <div>⏱️ Trop lent ! La réponse était <strong>${p.currentQ.r}</strong>.</div>
+                <div class="strategy">💡 ${p.currentQ.s}</div>
+            `;
+            setTimeout(() => nextQuestion(id), 4000);
+        }
+
+        function clearInput(id) {
+            const input = document.getElementById(`input-${id}`);
+            input.value = '';
+            input.focus();
+        }
+
+        function validate(id) {
+            const p = players.find(x => x.id === id);
+            if(!p.currentQ) return;
+            
+            clearInterval(p.timer);
+            
+            const input = document.getElementById(`input-${id}`);
+            const val = parseInt(input.value);
+            const feedback = document.getElementById(`feedback-${id}`);
+            
+            if(isNaN(val)) return;
+
+            if(val === p.currentQ.r) {
+                feedback.className = 'feedback-area correct';
+                feedback.innerHTML = `
+                    <div>✅ Bravo !</div>
+                    <div class="strategy">💡 ${p.currentQ.s}</div>
+                `;
+                setTimeout(() => nextQuestion(id), 3000);
+            } else {
+                feedback.className = 'feedback-area incorrect';
+                feedback.innerHTML = `
+                    <div>❌ Oups ! C'était <strong>${p.currentQ.r}</strong>.</div>
+                    <div class="strategy">💡 ${p.currentQ.s}</div>
+                `;
+            }
+        }
+
+        // Initialisation par défaut (1 élève)
+        window.onload = () => buildWorkspace(1);
+    </script>
+</body>
+</html>

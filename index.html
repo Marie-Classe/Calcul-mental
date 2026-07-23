@@ -303,8 +303,9 @@
         .feedback-area.correct { background: #d1fae5; color: #065f46; border: 2px solid #34d399; }
         .feedback-area.incorrect { background: #fee2e2; color: #991b1b; border: 2px solid #f87171; }
         
+        /* Indicateur de progression visible en Évaluation ET en Entraînement */
         .progress-indicator { text-align: center; font-weight: 700; color: #64748b; display: none; margin-bottom: 10px; }
-        body.mode-evaluation .progress-indicator { display: block; }
+        body.mode-evaluation .progress-indicator, body.mode-entrainement .progress-indicator { display: block; }
         
         .exercise-container { display: none; }
     </style>
@@ -432,7 +433,6 @@
             for(let i = 1; i <= count; i++) {
                 players.push({ id: i, timer: null, currentQ: null, currentProg: null, score: 0, qCount: 0, evalFinished: false });
                 
-                // Génération de la grille des notions propre à chaque carte d'élève
                 let gridHTML = '';
                 for(let key in progressionData) {
                     gridHTML += `<button class="prog-btn" onclick="selectProgression(${i}, '${key}')" title="${progressionData[key].t}">${key}</button>`;
@@ -456,11 +456,10 @@
                     <div id="prog-grid-${i}" class="prog-grid">${gridHTML}</div>
 
                     <div id="exercise-container-${i}" class="exercise-container">
-                        <div id="progress-${i}" class="progress-indicator">Question 0 / 10</div>
+                        <div id="progress-${i}" class="progress-indicator">Bonnes réponses : 0</div>
                         
                         <div id="display-${i}" class="exercise-display">...</div>
                         
-                        <!-- Ligne d'aide interactive -->
                         <div class="help-container">
                             <button id="btn-help-${i}" class="help-btn" onclick="showHelp(${i})">💡 Indice</button>
                             <div id="help-box-${i}" class="strategy-box"></div>
@@ -538,6 +537,13 @@
             const p = players.find(x => x.id === id);
             p.score = 0; p.qCount = 0; p.evalFinished = false;
             document.getElementById(`btn-val-${id}`).disabled = false;
+            
+            if (currentMode === 'mode-evaluation') {
+                document.getElementById(`progress-${id}`).innerText = `Question ${p.qCount + 1} / 10`;
+            } else if (currentMode === 'mode-entrainement') {
+                document.getElementById(`progress-${id}`).innerText = `Bonnes réponses : ${p.score}`;
+            }
+
             startQuestion(id);
         }
 
@@ -554,10 +560,6 @@
             document.getElementById(`btn-help-${id}`).style.display = 'inline-flex';
             document.getElementById(`help-box-${id}`).style.display = 'none';
             document.getElementById(`help-box-${id}`).innerHTML = `💡 ${p.currentQ.s}`;
-
-            if (currentMode === 'mode-evaluation') {
-                document.getElementById(`progress-${id}`).innerText = `Question ${p.qCount + 1} / 10`;
-            }
             
             runTimer(id);
         }
@@ -615,7 +617,7 @@
             display.innerHTML = `<div style="line-height: 1;">${fullCorrection}</div>`;
 
             if(userVal === p.currentQ.r) {
-                if(currentMode === 'mode-evaluation') p.score++;
+                p.score++;
                 feedback.className = 'feedback-area correct';
                 feedback.innerHTML = `✅ Exact !`;
             } else {
@@ -627,11 +629,17 @@
                 }
             }
 
+            // Mise à jour de l'affichage du score selon le mode
+            if (currentMode === 'mode-evaluation') {
+                p.qCount++;
+                document.getElementById(`progress-${id}`).innerText = `Question ${p.qCount} / 10`;
+            } else if (currentMode === 'mode-entrainement') {
+                document.getElementById(`progress-${id}`).innerText = `Bonnes réponses : ${p.score}`;
+            }
+
             let delayToNext = 3000;
 
             if(currentMode === 'mode-evaluation') {
-                p.qCount++;
-                document.getElementById(`progress-${id}`).innerText = `Question ${p.qCount} / 10`;
                 delayToNext = 5000; 
                 
                 if(p.qCount >= 10) {

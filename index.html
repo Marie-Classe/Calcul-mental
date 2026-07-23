@@ -229,14 +229,13 @@
         }
         .help-btn:hover { background: #e2e8f0; }
 
-        /* On cache le bouton d'indice pendant les évaluations ! */
         body.mode-evaluation .help-btn { display: none !important; }
 
         .strategy-box {
             font-size: 0.85rem;
             color: #0f172a;
             font-weight: 700;
-            background: #fef08a; /* Jaune doux "ampoule" */
+            background: #fef08a;
             border: 1px solid #fde047;
             padding: 6px 12px;
             border-radius: 8px;
@@ -307,7 +306,6 @@
         .progress-indicator { text-align: center; font-weight: 700; color: #64748b; display: none; margin-bottom: 10px; }
         body.mode-evaluation .progress-indicator { display: block; }
         
-        /* Masquer l'exercice tant qu'aucune notion n'est choisie */
         .exercise-container { display: none; }
     </style>
 </head>
@@ -428,17 +426,18 @@
             ws.innerHTML = '';
             players = [];
 
-            let gridHTML = '';
-            for(let key in progressionData) {
-                gridHTML += `<button class="prog-btn" onclick="selectProgression(${players.length + 1}, '${key}')" title="${progressionData[key].t}">${key}</button>`;
-            }
-
             let studentOptions = '<option value="">Qui es-tu ?</option>';
             studentsList.forEach(s => studentOptions += `<option value="${s}">${s}</option>`);
 
             for(let i = 1; i <= count; i++) {
                 players.push({ id: i, timer: null, currentQ: null, currentProg: null, score: 0, qCount: 0, evalFinished: false });
                 
+                // Génération de la grille des notions propre à chaque carte d'élève
+                let gridHTML = '';
+                for(let key in progressionData) {
+                    gridHTML += `<button class="prog-btn" onclick="selectProgression(${i}, '${key}')" title="${progressionData[key].t}">${key}</button>`;
+                }
+
                 const card = document.createElement('div');
                 card.className = 'player-card';
                 card.innerHTML = `
@@ -491,7 +490,6 @@
             }
         }
 
-        // Fonction pour afficher la boîte d'aide
         function showHelp(id) {
             document.getElementById(`help-box-${id}`).style.display = 'inline-block';
             document.getElementById(`btn-help-${id}`).style.display = 'none';
@@ -553,7 +551,6 @@
             document.getElementById(`feedback-${id}`).className = 'feedback-area';
             document.getElementById(`feedback-${id}`).innerHTML = '';
 
-            // Réinitialisation de l'aide pour la nouvelle question
             document.getElementById(`btn-help-${id}`).style.display = 'inline-flex';
             document.getElementById(`help-box-${id}`).style.display = 'none';
             document.getElementById(`help-box-${id}`).innerHTML = `💡 ${p.currentQ.s}`;
@@ -603,11 +600,9 @@
             const feedback = document.getElementById(`feedback-${id}`);
             const display = document.getElementById(`display-${id}`);
 
-            // Masquer la zone d'aide pendant la correction
             document.getElementById(`btn-help-${id}`).style.display = 'none';
             document.getElementById(`help-box-${id}`).style.display = 'none';
 
-            // 1. Mise en forme de la correction simple
             let fullCorrection = p.currentQ.q;
             if (fullCorrection.includes('...')) {
                 fullCorrection = fullCorrection.replace('...', `<span style="color: #2563eb;">${p.currentQ.r}</span>`);
@@ -617,10 +612,8 @@
                 fullCorrection += ` ➔ <span style="color: #2563eb;">${p.currentQ.r}</span>`;
             }
 
-            // 2. Affichage strict de la correction
             display.innerHTML = `<div style="line-height: 1;">${fullCorrection}</div>`;
 
-            // 3. Feedback court
             if(userVal === p.currentQ.r) {
                 if(currentMode === 'mode-evaluation') p.score++;
                 feedback.className = 'feedback-area correct';
@@ -634,13 +627,12 @@
                 }
             }
 
-            // Gestion du temps d'attente avant la prochaine question
-            let delayToNext = 3000; // 3 secondes en mode normal
+            let delayToNext = 3000;
 
             if(currentMode === 'mode-evaluation') {
                 p.qCount++;
                 document.getElementById(`progress-${id}`).innerText = `Question ${p.qCount} / 10`;
-                delayToNext = 5000; // 5 secondes en mode évaluation pour laisser le temps de lire
+                delayToNext = 5000; 
                 
                 if(p.qCount >= 10) {
                     p.evalFinished = true;

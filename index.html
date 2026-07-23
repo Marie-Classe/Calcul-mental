@@ -102,7 +102,7 @@
         .layout-4 { grid-template-columns: repeat(2, 1fr); }
         @media(min-width: 1024px) { .layout-4 { grid-template-columns: repeat(4, 1fr); } }
 
-        /* Carte Joueur (Inspirée de la capture d'écran) */
+        /* Carte Joueur */
         .player-card {
             background: var(--card-bg);
             border: 3px dashed #cbd5e1;
@@ -165,7 +165,7 @@
 
         /* Grille des notions (A-Z) */
         .prog-grid {
-            display: none; /* Masqué par défaut */
+            display: grid; /* Modifié ici : affiché par défaut */
             grid-template-columns: repeat(5, 1fr);
             gap: 5px;
             background: white;
@@ -202,7 +202,7 @@
             border: 1px solid rgba(0,0,0,0.05);
         }
 
-        /* Champ de réponse (Lecture seule car on utilise le clavier numérique) */
+        /* Champ de réponse */
         input.answer-input {
             width: 100%;
             padding: 15px;
@@ -282,7 +282,6 @@
                 <button class="tool-btn mode-btn" onclick="setMode('evaluation', 'mode-evaluation', '#f97316')">Évaluation</button>
             </div>
             
-            <!-- Boutons temps: Ordre décroissant. Défaut: infini (0) -->
             <div class="segmented" id="timer-config-container">
                 <button class="tool-btn timer-btn active" data-val="0" onclick="setTimer(0, this)" title="Infini">∞</button>
                 <button class="tool-btn timer-btn" data-val="120" onclick="setTimer(120, this)">120s</button>
@@ -308,7 +307,6 @@
     </div>
 
     <script>
-        // Liste des élèves (Modifiable)
         const studentsList = [
             "Élève 1", "Élève 2", "Élève 3", "Élève 4", "Élève 5", "Élève 6",
             "Élève 7", "Élève 8", "Élève 9", "Élève 10", "Élève 11", "Élève 12",
@@ -317,7 +315,6 @@
             "Élève 25", "Élève 26", "Élève 27", "Élève 28", "Élève 29", "Élève 30"
         ];
 
-        // Progression A-Z
         const progressionData = {
             "A": { t: "+1 / -1", gen: () => { let n=Math.floor(Math.random()*20)+1; let op=Math.random()>0.5?'+':'-'; return { q: `${n} ${op} 1 =`, r: op==='+'?n+1:n-1, s: "Avance ou recule d'une case."}; }},
             "B": { t: "Maisons 2, 3", gen: () => { let max=Math.random()>0.5?2:3; let n=Math.floor(Math.random()*(max+1)); return { q: `${n} + ... = ${max}`, r: max-n, s: `Complète jusqu'à ${max}.`}; }},
@@ -349,7 +346,7 @@
 
         let currentMode = 'mode-autonomie';
         let players = [];
-        let timerConfig = 0; // Défaut : Infini
+        let timerConfig = 0;
 
         function setMode(mode, className, color) {
             document.body.className = className;
@@ -359,7 +356,6 @@
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
 
-            // En mode autonomie, masquer les chronos, sinon les afficher
             const timerContainer = document.getElementById('timer-config-container');
             if (className === 'mode-autonomie') {
                 timerContainer.style.display = 'none';
@@ -393,13 +389,11 @@
             ws.innerHTML = '';
             players = [];
 
-            // Création de la grille des lettres A-Z
             let gridHTML = '';
             for(let key in progressionData) {
                 gridHTML += `<button class="prog-btn" onclick="selectProgression(${players.length + 1}, '${key}')" title="${progressionData[key].t}">${key}</button>`;
             }
 
-            // Options élèves
             let studentOptions = '<option value="">Qui es-tu ?</option>';
             studentsList.forEach(s => studentOptions += `<option value="${s}">${s}</option>`);
 
@@ -428,10 +422,8 @@
                         <div id="progress-${i}" class="progress-indicator">Question 0 / 10</div>
                         <div id="display-${i}" class="exercise-display">...</div>
                         
-                        <!-- Input en lecture seule, géré par le numpad -->
                         <input type="text" id="input-${i}" class="answer-input" readonly placeholder="?">
                         
-                        <!-- Clavier numérique -->
                         <div class="numpad">
                             <button class="num-btn" onclick="typeNum(${i}, 1)">1</button>
                             <button class="num-btn" onclick="typeNum(${i}, 2)">2</button>
@@ -454,20 +446,18 @@
             }
         }
 
-        // --- Logique du clavier numérique ---
         function typeNum(id, num) {
             const input = document.getElementById(`input-${id}`);
-            if(input.value.length < 4) input.value += num; // Limite à 4 chiffres
+            if(input.value.length < 4) input.value += num;
         }
         function delNum(id) {
             const input = document.getElementById(`input-${id}`);
             input.value = input.value.slice(0, -1);
         }
 
-        // --- Choix du programme ---
         function toggleProgGrid(id) {
             const grid = document.getElementById(`prog-grid-${id}`);
-            grid.style.display = grid.style.display === 'grid' ? 'none' : 'grid';
+            grid.style.display = grid.style.display === 'none' ? 'grid' : 'none';
         }
 
         function selectProgression(id, key) {
@@ -489,6 +479,7 @@
             const p = players.find(x => x.id === id);
             clearInterval(p.timer);
             document.getElementById(`exercise-container-${id}`).style.display = 'none';
+            document.getElementById(`prog-grid-${id}`).style.display = 'grid'; // Affiche la grille par défaut
             document.getElementById(`btn-choose-${id}`).innerText = "Choisir une notion de calcul";
             document.getElementById(`feedback-${id}`).innerHTML = "";
             p.currentProg = null;
@@ -593,6 +584,11 @@
                 feedback.innerHTML = `<strong>${student}, c'est terminé !</strong><br>Score final : ${p.score} / 10`;
             }
             feedback.className = 'feedback-area correct';
+            
+            // Réaffiche la grille au bout de quelques secondes pour permettre de relancer
+            setTimeout(() => {
+                stopSession(id);
+            }, 4000);
         }
 
         window.onload = () => buildWorkspace(1);

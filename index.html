@@ -120,11 +120,12 @@
 
         .player-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end; /* Garde le chronomètre aligné à droite s'il y en a un */
             align-items: center;
             font-weight: 700;
             color: #475569;
             font-size: 1.1rem;
+            min-height: 24px; /* Évite que l'espace saute si le chrono disparaît */
         }
 
         .timer-badge {
@@ -185,29 +186,29 @@
         }
         .prog-btn:hover { background: var(--current-mode); color: white; }
 
-        /* Zone d'affichage du calcul (RÉDUITE ET ADAPTÉE) */
+        /* Zone d'affichage du calcul (ENCORE PLUS RÉDUITE) */
         .exercise-display {
             background: var(--box-bg);
             border-radius: 12px;
-            font-size: 2.2rem; /* Réduit */
+            font-size: 1.8rem; /* Réduit */
             text-align: center;
             font-weight: 900;
-            padding: 15px 10px; /* Réduit */
+            padding: 10px; /* Réduit */
             color: #0f172a;
-            min-height: 100px; /* Réduit */
+            min-height: 80px; /* Réduit */
             display: flex;
-            flex-direction: column; /* Permet d'empiler le calcul et la procédure */
+            flex-direction: column; 
             align-items: center;
             justify-content: center;
             letter-spacing: -1px;
             border: 1px solid rgba(0,0,0,0.05);
         }
 
-        /* Champ de réponse (RÉDUIT) */
+        /* Champ de réponse (ENCORE PLUS RÉDUIT) */
         input.answer-input {
             width: 100%;
-            padding: 10px; /* Réduit */
-            font-size: 2.2rem; /* Réduit */
+            padding: 8px; /* Réduit */
+            font-size: 1.8rem; /* Réduit */
             text-align: center;
             border: 3px solid #cbd5e1;
             border-radius: 12px;
@@ -218,21 +219,21 @@
         }
         input.answer-input:focus { outline: none; }
 
-        /* Clavier Numérique (RÉDUIT) */
+        /* Clavier Numérique (ENCORE PLUS RÉDUIT) */
         .numpad {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px; /* Réduit */
+            gap: 8px; 
         }
 
         .num-btn {
             background: #ffffff;
             border: 2px solid #e2e8f0;
-            border-radius: 10px; /* Réduit */
-            font-size: 1.5rem; /* Réduit */
+            border-radius: 8px; /* Réduit */
+            font-size: 1.2rem; /* Réduit */
             font-weight: 900;
             color: #1e293b;
-            padding: 10px 0; /* Réduit */
+            padding: 8px 0; /* Réduit */
             cursor: pointer;
             box-shadow: 0 4px 0 #e2e8f0;
             transition: transform 0.1s, box-shadow 0.1s;
@@ -243,29 +244,29 @@
             box-shadow: 0 0 0 #e2e8f0;
         }
 
-        .btn-del { color: #ef4444; font-size: 1.2rem; }
-        .btn-val { background: #10b981; color: white; border-color: #059669; box-shadow: 0 4px 0 #059669; font-size: 1.4rem;}
+        .btn-del { color: #ef4444; font-size: 1.1rem; }
+        .btn-val { background: #10b981; color: white; border-color: #059669; box-shadow: 0 4px 0 #059669; font-size: 1.2rem;}
         .btn-val:active { box-shadow: 0 0 0 #059669; }
 
         /* Feedback et Procédure */
         .feedback-area {
-            min-height: 45px; /* Réduit */
+            min-height: 45px; 
             padding: 8px;
             border-radius: 12px;
-            font-size: 1rem;
+            font-size: 0.95rem;
             text-align: center;
             display: flex;
             flex-direction: column;
             justify-content: center;
             font-weight: 700;
-            margin-top: 10px;
+            margin-top: 5px;
         }
         .feedback-area.correct { background: #d1fae5; color: #065f46; border: 2px solid #34d399; }
         .feedback-area.incorrect { background: #fee2e2; color: #991b1b; border: 2px solid #f87171; }
         
         /* Style de la bulle de procédure injectée dans l'affichage */
         .strategy { 
-            font-size: 0.45em; 
+            font-size: 0.55em; /* Ajusté pour rester lisible avec la nouvelle police globale */
             color: #334155; 
             margin-top: 8px; 
             font-weight: 700; 
@@ -417,7 +418,6 @@
                 card.className = 'player-card';
                 card.innerHTML = `
                     <div class="player-header">
-                        <span>Poste ${i}</span>
                         <span id="timer-badge-${i}" class="timer-badge" style="display:none;"></span>
                     </div>
                     
@@ -603,7 +603,6 @@
                 }
             }
             
-            // Délai un peu plus long (3s) pour laisser le temps de lire la procédure
             setTimeout(() => startQuestion(id), 3000); 
         }
 

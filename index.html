@@ -10,12 +10,12 @@
         :root {
             --bg-page: #eef2f6;
             --card-bg: #f6f7fc;
-            --box-bg: #f8efe6; /* Beige doux inspiré de l'image */
+            --box-bg: #f8efe6;
             --text-main: #1e293b;
-            --mode-auto: #10b981; /* Vert */
-            --mode-train: #8b5cf6; /* Violet */
-            --mode-eval: #f97316; /* Orange */
-            --current-mode: var(--mode-auto); /* Vert par défaut */
+            --mode-auto: #10b981;
+            --mode-train: #8b5cf6;
+            --mode-eval: #f97316;
+            --current-mode: var(--mode-auto);
         }
 
         * {
@@ -135,7 +135,7 @@
             font-size: 1rem;
         }
 
-        /* Menu de sélection d'élève (caché par défaut) */
+        /* Menu de sélection d'élève */
         .student-select-container { display: none; }
         body.mode-evaluation .student-select-container { display: block; }
         
@@ -163,9 +163,9 @@
             width: 100%;
         }
 
-        /* Grille des notions (A-Z) */
+        /* Grille des notions */
         .prog-grid {
-            display: grid; /* Modifié ici : affiché par défaut */
+            display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 5px;
             background: white;
@@ -185,31 +185,32 @@
         }
         .prog-btn:hover { background: var(--current-mode); color: white; }
 
-        /* Zone d'affichage du calcul */
+        /* Zone d'affichage du calcul (RÉDUITE ET ADAPTÉE) */
         .exercise-display {
             background: var(--box-bg);
             border-radius: 12px;
-            font-size: 3.5rem;
+            font-size: 2.2rem; /* Réduit */
             text-align: center;
             font-weight: 900;
-            padding: 20px 10px;
+            padding: 15px 10px; /* Réduit */
             color: #0f172a;
-            min-height: 120px;
+            min-height: 100px; /* Réduit */
             display: flex;
+            flex-direction: column; /* Permet d'empiler le calcul et la procédure */
             align-items: center;
             justify-content: center;
-            letter-spacing: -2px;
+            letter-spacing: -1px;
             border: 1px solid rgba(0,0,0,0.05);
         }
 
-        /* Champ de réponse */
+        /* Champ de réponse (RÉDUIT) */
         input.answer-input {
             width: 100%;
-            padding: 15px;
-            font-size: 3rem;
+            padding: 10px; /* Réduit */
+            font-size: 2.2rem; /* Réduit */
             text-align: center;
             border: 3px solid #cbd5e1;
-            border-radius: 16px;
+            border-radius: 12px;
             font-weight: 900;
             color: var(--current-mode);
             background: #ffffff;
@@ -217,21 +218,21 @@
         }
         input.answer-input:focus { outline: none; }
 
-        /* Clavier Numérique */
+        /* Clavier Numérique (RÉDUIT) */
         .numpad {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
+            gap: 8px; /* Réduit */
         }
 
         .num-btn {
             background: #ffffff;
             border: 2px solid #e2e8f0;
-            border-radius: 14px;
-            font-size: 2rem;
+            border-radius: 10px; /* Réduit */
+            font-size: 1.5rem; /* Réduit */
             font-weight: 900;
             color: #1e293b;
-            padding: 15px 0;
+            padding: 10px 0; /* Réduit */
             cursor: pointer;
             box-shadow: 0 4px 0 #e2e8f0;
             transition: transform 0.1s, box-shadow 0.1s;
@@ -242,14 +243,14 @@
             box-shadow: 0 0 0 #e2e8f0;
         }
 
-        .btn-del { color: #ef4444; font-size: 1.5rem; }
-        .btn-val { background: #10b981; color: white; border-color: #059669; box-shadow: 0 4px 0 #059669; font-size: 1.8rem;}
+        .btn-del { color: #ef4444; font-size: 1.2rem; }
+        .btn-val { background: #10b981; color: white; border-color: #059669; box-shadow: 0 4px 0 #059669; font-size: 1.4rem;}
         .btn-val:active { box-shadow: 0 0 0 #059669; }
 
-        /* Feedback */
+        /* Feedback et Procédure */
         .feedback-area {
-            min-height: 70px;
-            padding: 10px;
+            min-height: 45px; /* Réduit */
+            padding: 8px;
             border-radius: 12px;
             font-size: 1rem;
             text-align: center;
@@ -261,7 +262,19 @@
         }
         .feedback-area.correct { background: #d1fae5; color: #065f46; border: 2px solid #34d399; }
         .feedback-area.incorrect { background: #fee2e2; color: #991b1b; border: 2px solid #f87171; }
-        .strategy { font-size: 0.85rem; font-weight: 500; margin-top: 5px; opacity: 0.9; }
+        
+        /* Style de la bulle de procédure injectée dans l'affichage */
+        .strategy { 
+            font-size: 0.45em; 
+            color: #334155; 
+            margin-top: 8px; 
+            font-weight: 700; 
+            background: #e2e8f0; 
+            padding: 4px 12px; 
+            border-radius: 8px; 
+            letter-spacing: normal;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+        }
         
         .progress-indicator { text-align: center; font-weight: 700; color: #64748b; display: none; margin-bottom: 10px; }
         body.mode-evaluation .progress-indicator { display: block; }
@@ -282,7 +295,7 @@
                 <button class="tool-btn mode-btn" onclick="setMode('evaluation', 'mode-evaluation', '#f97316')">Évaluation</button>
             </div>
             
-            <div class="segmented" id="timer-config-container">
+            <div class="segmented" id="timer-config-container" style="display:none;">
                 <button class="tool-btn timer-btn active" data-val="0" onclick="setTimer(0, this)" title="Infini">∞</button>
                 <button class="tool-btn timer-btn" data-val="120" onclick="setTimer(120, this)">120s</button>
                 <button class="tool-btn timer-btn" data-val="60" onclick="setTimer(60, this)">60s</button>
@@ -479,7 +492,7 @@
             const p = players.find(x => x.id === id);
             clearInterval(p.timer);
             document.getElementById(`exercise-container-${id}`).style.display = 'none';
-            document.getElementById(`prog-grid-${id}`).style.display = 'grid'; // Affiche la grille par défaut
+            document.getElementById(`prog-grid-${id}`).style.display = 'grid';
             document.getElementById(`btn-choose-${id}`).innerText = "Choisir une notion de calcul";
             document.getElementById(`feedback-${id}`).innerHTML = "";
             p.currentProg = null;
@@ -497,6 +510,7 @@
             if(!p.currentProg || p.evalFinished) return;
             
             p.currentQ = progressionData[p.currentProg].gen();
+            // On remet uniquement le texte de la question, ce qui efface la bulle de procédure
             document.getElementById(`display-${id}`).innerText = p.currentQ.q;
             document.getElementById(`input-${id}`).value = '';
             document.getElementById(`feedback-${id}`).className = 'feedback-area';
@@ -545,14 +559,36 @@
             
             clearInterval(p.timer);
             const feedback = document.getElementById(`feedback-${id}`);
+            const display = document.getElementById(`display-${id}`);
 
+            // 1. Mise en forme de la correction dans l'affichage du calcul
+            let fullCorrection = p.currentQ.q;
+            if (fullCorrection.includes('...')) {
+                fullCorrection = fullCorrection.replace('...', `<span style="color: #2563eb;">${p.currentQ.r}</span>`);
+            } else if (fullCorrection.endsWith('=')) {
+                fullCorrection += ` <span style="color: #2563eb;">${p.currentQ.r}</span>`;
+            } else {
+                fullCorrection += ` ➔ <span style="color: #2563eb;">${p.currentQ.r}</span>`;
+            }
+
+            // 2. Affichage de la réponse + de la procédure dans la zone d'exercice
+            display.innerHTML = `
+                <div>${fullCorrection}</div>
+                <div class="strategy">💡 ${p.currentQ.s}</div>
+            `;
+
+            // 3. Feedback court et clair
             if(userVal === p.currentQ.r) {
                 if(currentMode === 'mode-evaluation') p.score++;
                 feedback.className = 'feedback-area correct';
-                feedback.innerHTML = `✅ Exact ! <div class="strategy">${p.currentQ.s}</div>`;
+                feedback.innerHTML = `✅ Exact !`;
             } else {
                 feedback.className = 'feedback-area incorrect';
-                feedback.innerHTML = `❌ La réponse était ${p.currentQ.r}. <div class="strategy">${p.currentQ.s}</div>`;
+                if (userVal === null) {
+                    feedback.innerHTML = `❌ Temps écoulé ! Regarde la correction.`;
+                } else {
+                    feedback.innerHTML = `❌ Faux ! Regarde la correction.`;
+                }
             }
 
             if(currentMode === 'mode-evaluation') {
@@ -567,7 +603,8 @@
                 }
             }
             
-            setTimeout(() => startQuestion(id), 2500);
+            // Délai un peu plus long (3s) pour laisser le temps de lire la procédure
+            setTimeout(() => startQuestion(id), 3000); 
         }
 
         function endEvaluation(id) {
@@ -585,7 +622,6 @@
             }
             feedback.className = 'feedback-area correct';
             
-            // Réaffiche la grille au bout de quelques secondes pour permettre de relancer
             setTimeout(() => {
                 stopSession(id);
             }, 4000);

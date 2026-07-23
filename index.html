@@ -120,12 +120,12 @@
 
         .player-header {
             display: flex;
-            justify-content: flex-end; /* Garde le chronomètre aligné à droite s'il y en a un */
+            justify-content: flex-end;
             align-items: center;
             font-weight: 700;
             color: #475569;
             font-size: 1.1rem;
-            min-height: 24px; /* Évite que l'espace saute si le chrono disparaît */
+            min-height: 24px; 
         }
 
         .timer-badge {
@@ -186,16 +186,16 @@
         }
         .prog-btn:hover { background: var(--current-mode); color: white; }
 
-        /* Zone d'affichage du calcul (ENCORE PLUS RÉDUITE) */
+        /* Zone d'affichage du calcul */
         .exercise-display {
             background: var(--box-bg);
             border-radius: 12px;
-            font-size: 1.8rem; /* Réduit */
+            font-size: 1.8rem;
             text-align: center;
             font-weight: 900;
-            padding: 10px; /* Réduit */
+            padding: 10px;
             color: #0f172a;
-            min-height: 80px; /* Réduit */
+            min-height: 80px;
             display: flex;
             flex-direction: column; 
             align-items: center;
@@ -204,11 +204,51 @@
             border: 1px solid rgba(0,0,0,0.05);
         }
 
-        /* Champ de réponse (ENCORE PLUS RÉDUIT) */
+        /* Bouton d'indice et Boite de stratégie */
+        .help-container {
+            text-align: center;
+            min-height: 35px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 5px 0;
+        }
+
+        .help-btn {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 4px 12px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: #475569;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        .help-btn:hover { background: #e2e8f0; }
+
+        /* On cache le bouton d'indice pendant les évaluations ! */
+        body.mode-evaluation .help-btn { display: none !important; }
+
+        .strategy-box {
+            font-size: 0.85rem;
+            color: #0f172a;
+            font-weight: 700;
+            background: #fef08a; /* Jaune doux "ampoule" */
+            border: 1px solid #fde047;
+            padding: 6px 12px;
+            border-radius: 8px;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* Champ de réponse */
         input.answer-input {
             width: 100%;
-            padding: 8px; /* Réduit */
-            font-size: 1.8rem; /* Réduit */
+            padding: 8px;
+            font-size: 1.8rem;
             text-align: center;
             border: 3px solid #cbd5e1;
             border-radius: 12px;
@@ -219,7 +259,7 @@
         }
         input.answer-input:focus { outline: none; }
 
-        /* Clavier Numérique (ENCORE PLUS RÉDUIT) */
+        /* Clavier Numérique */
         .numpad {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -229,11 +269,11 @@
         .num-btn {
             background: #ffffff;
             border: 2px solid #e2e8f0;
-            border-radius: 8px; /* Réduit */
-            font-size: 1.2rem; /* Réduit */
+            border-radius: 8px;
+            font-size: 1.2rem;
             font-weight: 900;
             color: #1e293b;
-            padding: 8px 0; /* Réduit */
+            padding: 8px 0;
             cursor: pointer;
             box-shadow: 0 4px 0 #e2e8f0;
             transition: transform 0.1s, box-shadow 0.1s;
@@ -248,7 +288,7 @@
         .btn-val { background: #10b981; color: white; border-color: #059669; box-shadow: 0 4px 0 #059669; font-size: 1.2rem;}
         .btn-val:active { box-shadow: 0 0 0 #059669; }
 
-        /* Feedback et Procédure */
+        /* Feedback */
         .feedback-area {
             min-height: 45px; 
             padding: 8px;
@@ -263,19 +303,6 @@
         }
         .feedback-area.correct { background: #d1fae5; color: #065f46; border: 2px solid #34d399; }
         .feedback-area.incorrect { background: #fee2e2; color: #991b1b; border: 2px solid #f87171; }
-        
-        /* Style de la bulle de procédure injectée dans l'affichage */
-        .strategy { 
-            font-size: 0.55em; /* Ajusté pour rester lisible avec la nouvelle police globale */
-            color: #334155; 
-            margin-top: 8px; 
-            font-weight: 700; 
-            background: #e2e8f0; 
-            padding: 4px 12px; 
-            border-radius: 8px; 
-            letter-spacing: normal;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
-        }
         
         .progress-indicator { text-align: center; font-weight: 700; color: #64748b; display: none; margin-bottom: 10px; }
         body.mode-evaluation .progress-indicator { display: block; }
@@ -296,7 +323,7 @@
                 <button class="tool-btn mode-btn" onclick="setMode('evaluation', 'mode-evaluation', '#f97316')">Évaluation</button>
             </div>
             
-            <div class="segmented" id="timer-config-container" style="display:none;">
+            <div class="segmented" id="timer-config-container">
                 <button class="tool-btn timer-btn active" data-val="0" onclick="setTimer(0, this)" title="Infini">∞</button>
                 <button class="tool-btn timer-btn" data-val="120" onclick="setTimer(120, this)">120s</button>
                 <button class="tool-btn timer-btn" data-val="60" onclick="setTimer(60, this)">60s</button>
@@ -370,12 +397,10 @@
             document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
 
-            const timerContainer = document.getElementById('timer-config-container');
             if (className === 'mode-autonomie') {
-                timerContainer.style.display = 'none';
-                timerConfig = 0;
+                const infiniteBtn = document.querySelector('.timer-btn[data-val="0"]');
+                if(infiniteBtn) setTimer(0, infiniteBtn);
             } else {
-                timerContainer.style.display = 'inline-flex';
                 const activeBtn = document.querySelector('.timer-btn.active');
                 timerConfig = activeBtn ? parseInt(activeBtn.dataset.val) : 0;
             }
@@ -433,7 +458,14 @@
 
                     <div id="exercise-container-${i}" class="exercise-container">
                         <div id="progress-${i}" class="progress-indicator">Question 0 / 10</div>
+                        
                         <div id="display-${i}" class="exercise-display">...</div>
+                        
+                        <!-- Ligne d'aide interactive -->
+                        <div class="help-container">
+                            <button id="btn-help-${i}" class="help-btn" onclick="showHelp(${i})">💡 Indice</button>
+                            <div id="help-box-${i}" class="strategy-box"></div>
+                        </div>
                         
                         <input type="text" id="input-${i}" class="answer-input" readonly placeholder="?">
                         
@@ -457,6 +489,12 @@
                 `;
                 ws.appendChild(card);
             }
+        }
+
+        // Fonction pour afficher la boîte d'aide
+        function showHelp(id) {
+            document.getElementById(`help-box-${id}`).style.display = 'inline-block';
+            document.getElementById(`btn-help-${id}`).style.display = 'none';
         }
 
         function typeNum(id, num) {
@@ -510,11 +548,15 @@
             if(!p.currentProg || p.evalFinished) return;
             
             p.currentQ = progressionData[p.currentProg].gen();
-            // On remet uniquement le texte de la question, ce qui efface la bulle de procédure
             document.getElementById(`display-${id}`).innerText = p.currentQ.q;
             document.getElementById(`input-${id}`).value = '';
             document.getElementById(`feedback-${id}`).className = 'feedback-area';
             document.getElementById(`feedback-${id}`).innerHTML = '';
+
+            // Réinitialisation de l'aide pour la nouvelle question
+            document.getElementById(`btn-help-${id}`).style.display = 'inline-flex';
+            document.getElementById(`help-box-${id}`).style.display = 'none';
+            document.getElementById(`help-box-${id}`).innerHTML = `💡 ${p.currentQ.s}`;
 
             if (currentMode === 'mode-evaluation') {
                 document.getElementById(`progress-${id}`).innerText = `Question ${p.qCount + 1} / 10`;
@@ -561,7 +603,11 @@
             const feedback = document.getElementById(`feedback-${id}`);
             const display = document.getElementById(`display-${id}`);
 
-            // 1. Mise en forme de la correction dans l'affichage du calcul
+            // Masquer la zone d'aide pendant la correction
+            document.getElementById(`btn-help-${id}`).style.display = 'none';
+            document.getElementById(`help-box-${id}`).style.display = 'none';
+
+            // 1. Mise en forme de la correction simple
             let fullCorrection = p.currentQ.q;
             if (fullCorrection.includes('...')) {
                 fullCorrection = fullCorrection.replace('...', `<span style="color: #2563eb;">${p.currentQ.r}</span>`);
@@ -571,13 +617,10 @@
                 fullCorrection += ` ➔ <span style="color: #2563eb;">${p.currentQ.r}</span>`;
             }
 
-            // 2. Affichage de la réponse + de la procédure dans la zone d'exercice
-            display.innerHTML = `
-                <div>${fullCorrection}</div>
-                <div class="strategy">💡 ${p.currentQ.s}</div>
-            `;
+            // 2. Affichage strict de la correction
+            display.innerHTML = `<div style="line-height: 1;">${fullCorrection}</div>`;
 
-            // 3. Feedback court et clair
+            // 3. Feedback court
             if(userVal === p.currentQ.r) {
                 if(currentMode === 'mode-evaluation') p.score++;
                 feedback.className = 'feedback-area correct';
@@ -591,19 +634,23 @@
                 }
             }
 
+            // Gestion du temps d'attente avant la prochaine question
+            let delayToNext = 3000; // 3 secondes en mode normal
+
             if(currentMode === 'mode-evaluation') {
                 p.qCount++;
                 document.getElementById(`progress-${id}`).innerText = `Question ${p.qCount} / 10`;
+                delayToNext = 5000; // 5 secondes en mode évaluation pour laisser le temps de lire
                 
                 if(p.qCount >= 10) {
                     p.evalFinished = true;
                     document.getElementById(`btn-val-${id}`).disabled = true;
-                    setTimeout(() => endEvaluation(id), 2500);
+                    setTimeout(() => endEvaluation(id), delayToNext);
                     return;
                 }
             }
             
-            setTimeout(() => startQuestion(id), 3000); 
+            setTimeout(() => startQuestion(id), delayToNext); 
         }
 
         function endEvaluation(id) {

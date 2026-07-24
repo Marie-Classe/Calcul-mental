@@ -443,6 +443,25 @@
             width: 300px;
             text-align: center;
         }
+
+        /* AJOUTS POUR HARMONISATION SUR ORDINATEUR UNIQUEMENT */
+        @media(min-width: 951px) {
+            .container {
+                align-items: stretch; /* Force les deux cartes à avoir la même hauteur */
+            }
+            .player-card, .abacus-card {
+                height: 100%;
+                justify-content: space-between;
+            }
+            .prog-grid {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 8px;
+            }
+            .prog-btn {
+                padding: 14px 0; /* Agrandit légèrement les boutons de notions pour occuper l'espace vertical de manière proportionnée */
+                font-size: 1.1rem;
+            }
+        }
     </style>
 </head>
 <body class="mode-autonomie">

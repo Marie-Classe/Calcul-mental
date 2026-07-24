@@ -3,231 +3,362 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Boulier Éducatif CP - V5 (Calcul Mental & Aide Tactile)</title>
+    <title>Calcul Mental & Boulier CP</title>
+    <!-- Importation des polices : Dancing Script et Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #f0f4f8;
-            --primary-color: #4a90e2;
-            --success-color: #2ecc71;
+            --bg-page: #eef2f6;
+            --card-bg: #f6f7fc;
+            --box-bg: #f8efe6;
+            --text-main: #1e293b;
+            --mode-auto: #10b981; /* Vert */
+            --mode-train: #8b5cf6; /* Violet */
+            --mode-eval: #f97316; /* Orange */
+            --current-mode: var(--mode-auto);
             
-            /* Couleurs des billes : 
-               - Quinaires inactives : #7D1E1F
-               - Quinaires actives : #c0392b
-               - Unaires inactives : #2c3a47
-               - Unaires actives : #2557A7 */
-            --bead-top-inactive: #7D1E1F;   
+            /* Couleurs du boulier */
+            --bead-top-inactive: #7D1E1F;    
             --bead-top-active: #c0392b;     
-            
             --bead-bottom-inactive: #2c3a47;
             --bead-bottom-active: #2557A7;  
-            
-            /* Couleurs dynamiques des cadres */
-            --frame-libre: #2ecc71;       /* Vert (Autonomie) */
-            --frame-entrainement: #8e44ad;/* Violet */
-            --frame-test: #e67e22;        /* Orange */
         }
 
         * {
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent !important;
-            -webkit-touch-callout: none !important;
-            -webkit-user-select: none !important;
-            user-select: none !important;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-main);
             margin: 0;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            touch-action: manipulation;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Conteneur principal en disposition côte à côte sur grand écran, empilé sur mobile */
-        .main-app-container {
+        /* En-tête global */
+        header {
+            background-color: #ffffff;
+            padding: 12px 20px;
             display: flex;
-            flex-direction: row;
-            gap: 20px;
-            align-items: flex-start;
-            justify-content: center;
-            max-width: 750px;
-            width: 100%;
             flex-wrap: wrap;
-        }
-
-        .left-panel, .right-panel {
-            display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
-            background: #ffffff;
-            padding: 12px;
-            border-radius: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            gap: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border-bottom: 4px solid var(--current-mode);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        button, .bead, .mode-btn, .level-btn, .submode-btn, .icon-btn, .key-btn, .beam-btn {
-            cursor: pointer;
-            touch-action: manipulation;
+        .main-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.4rem;
+            color: #4b5563;
+            margin: 0;
+            line-height: 1;
+            text-shadow: 1px 1px 0px rgba(255,255,255,1);
         }
 
-        /* Barre supérieure : Modes */
-        .header-controls {
+        .controls-group {
             display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-bottom: 6px;
-            width: 340px;
         }
 
-        .modes-container {
-            display: flex;
-            background-color: #dfe6e9;
+        .segmented {
+            display: inline-flex;
+            background: #e2e8f0;
             padding: 4px;
-            border-radius: 30px;
-            flex: 1;
+            border-radius: 12px;
+            gap: 4px;
         }
 
-        .mode-btn {
+        button.tool-btn {
+            background: transparent;
+            color: #64748b;
             border: none;
-            background: none;
-            padding: 6px 10px;
-            font-weight: bold;
-            font-size: 0.85rem;
-            border-radius: 20px;
-            color: #636e72;
-            flex: 1;
-            text-align: center;
-            transition: all 0.2s ease;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .mode-btn.active {
-            color: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-        }
-        
-        #btn-libre.active { background-color: var(--frame-libre); }
-        #btn-entrainement.active { background-color: var(--frame-entrainement); }
-        #btn-test.active { background-color: var(--frame-test); }
-
-        .icon-btn {
-            background-color: white;
-            border: 2px solid #b2bec3;
-            font-size: 1.1rem;
-            padding: 4px;
-            border-radius: 50%;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            width: 34px;
-            height: 34px;
+        button.tool-btn.active {
+            background: #ffffff;
+            color: var(--current-mode);
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        /* Sous-modes : 123, ABC, + */
-        .submodes-container {
+        .timer-btn { padding: 6px 8px !important; min-width: 40px; }
+
+        /* Conteneur Principal en 2 Colonnes */
+        .container { 
+            padding: 20px; 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            align-items: start;
+        }
+
+        @media(max-width: 950px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .workspace { 
             display: flex;
-            gap: 6px;
-            margin-bottom: 6px;
-            justify-content: center;
-            width: 340px;
+            flex-direction: column;
+            gap: 20px;
         }
 
-        .submode-btn {
-            background-color: white;
-            border: 2px solid var(--primary-color);
-            color: var(--primary-color);
-            border-radius: 15px;
-            padding: 3px 12px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            flex: 1;
-            transition: all 0.15s ease;
+        /* Carte Calcul Mental */
+        .player-card {
+            background: var(--card-bg);
+            border: 3px dashed #cbd5e1;
+            border-radius: 24px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
         }
 
-        .submode-btn.active {
-            background-color: var(--primary-color);
+        body.mode-autonomie .player-card { border-color: #6ee7b7; }
+        body.mode-entrainement .player-card { border-color: #c4b5fd; }
+        body.mode-evaluation .player-card { border-color: #fdba74; }
+
+        .player-header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            font-weight: 700;
+            color: #475569;
+            font-size: 1.1rem;
+            min-height: 24px; 
+        }
+
+        .timer-badge {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 1rem;
+        }
+
+        .student-select-container { display: none; }
+        body.mode-evaluation .student-select-container { display: block; }
+        
+        select.student-select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px solid #cbd5e1;
+            font-size: 1rem;
+            font-weight: 700;
+            outline: none;
+            background: white;
+        }
+
+        .btn-choose-prog {
+            background: var(--current-mode);
             color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
         }
 
-        /* Sélecteur de Niveaux sur 1 seule ligne */
-        .levels-container {
-            display: flex;
-            justify-content: space-between;
-            gap: 4px;
-            margin-bottom: 8px;
-            width: 340px;
-        }
-
-        .level-btn {
-            border: 2px solid var(--primary-color);
-            background-color: white;
-            color: var(--primary-color);
-            padding: 4px 2px;
-            font-size: 0.8rem;
-            font-weight: bold;
+        .prog-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            background: white;
+            padding: 10px;
             border-radius: 12px;
-            flex: 1;
+            border: 1px solid #e2e8f0;
+        }
+
+        .prog-btn {
+            background: #f1f5f9;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 0;
+            font-weight: 700;
+            color: #334155;
+            cursor: pointer;
+        }
+        .prog-btn:hover { background: var(--current-mode); color: white; }
+
+        .exercise-display {
+            background: var(--box-bg);
+            border-radius: 12px;
+            font-size: 1.8rem;
             text-align: center;
-            transition: all 0.15s ease;
-        }
-
-        .level-btn.active {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        /* Zone d'affichage Écran */
-        .display-container {
-            background-color: #f8f9fa;
-            border: 4px solid var(--primary-color);
-            border-radius: 15px;
-            padding: 6px 15px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 8px;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-            width: 340px;
-            min-height: 55px;
+            font-weight: 900;
+            padding: 10px;
+            color: #0f172a;
+            min-height: 80px;
             display: flex;
+            flex-direction: column; 
             align-items: center;
             justify-content: center;
+            letter-spacing: -1px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .help-container {
             text-align: center;
-            white-space: pre-line;
+            min-height: 35px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 2px 0;
         }
 
-        .display-container.success {
-            border-color: var(--success-color);
-            background-color: #e8f8f5;
-            color: var(--success-color);
+        .help-btn {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 4px 12px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: #475569;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+        }
+        .help-btn:hover { background: #e2e8f0; }
+
+        body.mode-evaluation .help-btn { display: none !important; }
+
+        .strategy-box {
+            font-size: 0.85rem;
+            color: #0f172a;
+            font-weight: 700;
+            background: #fef08a;
+            border: 1px solid #fde047;
+            padding: 6px 12px;
+            border-radius: 8px;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        /* Cadre du Boulier */
+        input.answer-input {
+            width: 100%;
+            padding: 8px;
+            font-size: 1.8rem;
+            text-align: center;
+            border: 3px solid #cbd5e1;
+            border-radius: 12px;
+            font-weight: 900;
+            color: var(--current-mode);
+            background: #ffffff;
+            margin-bottom: 5px;
+        }
+        input.answer-input:focus { outline: none; }
+
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px; 
+        }
+
+        .num-btn {
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: #1e293b;
+            padding: 8px 0;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #e2e8f0;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .num-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #e2e8f0;
+        }
+
+        .btn-del { color: #ef4444; font-size: 1.1rem; }
+        .btn-val { background: #10b981; color: white; border-color: #059669; box-shadow: 0 4px 0 #059669; font-size: 1.2rem;}
+        .btn-val:active { box-shadow: 0 0 0 #059669; }
+
+        .feedback-area {
+            min-height: 40px; 
+            padding: 8px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            font-weight: 700;
+        }
+        .feedback-area.correct { background: #d1fae5; color: #065f46; border: 2px solid #34d399; }
+        .feedback-area.incorrect { background: #fee2e2; color: #991b1b; border: 2px solid #f87171; }
+        
+        .progress-indicator { text-align: center; font-weight: 700; color: #64748b; display: none; margin-bottom: 5px; }
+        body.mode-evaluation .progress-indicator, body.mode-entrainement .progress-indicator { display: block; }
+        
+        .exercise-container { display: none; }
+
+
+        /* Colonne Droite : Le Boulier Interactif */
+        .abacus-card {
+            background: var(--card-bg);
+            border: 3px dashed #cbd5e1;
+            border-radius: 24px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .abacus-header {
+            font-weight: 700;
+            color: #475569;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
         .abacus-frame {
             background-color: #fff;
-            border: 12px solid var(--frame-libre); 
+            border: 10px solid var(--current-mode); 
             border-radius: 20px;
             display: flex;
             justify-content: space-around;
-            width: 320px;
-            height: 420px;
+            width: 300px;
+            height: 380px;
             position: relative;
             box-shadow: 0 10px 20px rgba(0,0,0,0.15);
             padding: 0 10px;
             transition: border-color 0.3s ease;
         }
 
-        /* Traverse centrale */
         .beam {
             position: absolute;
-            top: 130px;
+            top: 110px;
             left: 0;
             right: 0;
-            height: 20px;
+            height: 18px;
             background-color: #2c3e50;
             z-index: 10;
             display: flex;
@@ -238,32 +369,25 @@
         .beam-btn {
             color: white;
             border: none;
-            height: 20px;
-            width: 38px;
-            font-size: 12px;
+            height: 18px;
+            width: 35px;
+            font-size: 11px;
             font-weight: bold;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background-color 0.1s ease;
+            cursor: pointer;
         }
 
-        #reset-button {
+        #reset-abacus-btn {
             background-color: #c0392b;
             border-top-left-radius: 2px;
             border-bottom-left-radius: 2px;
         }
 
-        #action-button {
-            background-color: #27ae60;
-            border-top-right-radius: 2px;
-            border-bottom-right-radius: 2px;
-            display: none;
-        }
-
         .column {
             position: relative;
-            width: 70px;
+            width: 65px;
             height: 100%;
         }
 
@@ -271,214 +395,160 @@
             position: absolute;
             top: 0;
             bottom: 0;
-            left: 32px;
+            left: 29px;
             width: 6px;
             background: linear-gradient(90deg, #bbb, #eee, #bbb);
             z-index: 1;
         }
 
         .bead {
-            width: 60px;
-            height: 28px;
+            width: 55px;
+            height: 26px;
             border-radius: 15px / 10px;
             position: absolute;
             left: 5px;
             z-index: 5;
             transition: top 0.15s ease, background-color 0.15s ease;
             box-shadow: 0 3px 3px rgba(0,0,0,0.25), inset 0 2px 4px rgba(255,255,255,0.3);
+            cursor: pointer;
         }
 
-        /* Billes Quinaires (haut) */
         .bead.top { background-color: var(--bead-top-inactive); }
-        .bead.top.active { 
-            background-color: var(--bead-top-active); 
-            box-shadow: 0 3px 3px rgba(0,0,0,0.25), inset 0 2px 4px rgba(255,255,255,0.3);
-        }
+        .bead.top.active { background-color: var(--bead-top-active); }
 
-        /* Billes Unaires (bas) */
         .bead.bottom { background-color: var(--bead-bottom-inactive); }
-        .bead.bottom.active { 
-            background-color: var(--bead-bottom-active); 
-            box-shadow: 0 3px 3px rgba(0,0,0,0.25), inset 0 2px 4px rgba(255,255,255,0.3);
-        }
+        .bead.bottom.active { background-color: var(--bead-bottom-active); }
 
-        .labels {
+        .abacus-labels {
             display: flex;
             justify-content: space-around;
-            width: 340px;
-            margin-top: 6px;
+            width: 300px;
         }
 
-        .label {
-            width: 70px;
+        .abacus-label-item {
+            width: 65px;
             text-align: center;
             font-weight: bold;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
         }
 
-        .numeric-keyboard {
-            display: none;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 6px;
-            width: 340px;
-            margin-top: 8px;
-            background: #dfe6e9;
-            padding: 8px;
-            border-radius: 15px;
-        }
-
-        .key-btn {
+        .abacus-display {
             background-color: white;
-            border: 2px solid #b2bec3;
+            border: 2px solid #cbd5e1;
             border-radius: 10px;
-            padding: 8px 0;
+            padding: 6px 15px;
             font-size: 1.2rem;
             font-weight: bold;
-            color: #2d3436;
+            color: #2c3e50;
+            width: 300px;
             text-align: center;
-            transition: background-color 0.1s ease;
-        }
-
-        .key-btn:active {
-            background-color: #b2bec3;
-        }
-
-        /* Adaptation mobile : empiler proprement si l'écran est étroit */
-        @media (max-width: 720px) {
-            .main-app-container {
-                flex-direction: column;
-                align-items: center;
-            }
         }
     </style>
 </head>
-<body>
+<body class="mode-autonomie">
 
-    <div class="main-app-container">
-        <!-- Panneau de gauche : Commandes, Consigne & Clavier -->
-        <div class="left-panel">
-            <!-- Barre supérieure : Modes -->
-            <div class="header-controls">
-                <div class="modes-container">
-                    <button class="mode-btn active" id="btn-libre" onclick="changeMode('libre')">Autonomie</button>
-                    <button class="mode-btn" id="btn-entrainement" onclick="changeMode('entrainement')">Entraînement</button>
-                    <button class="mode-btn" id="btn-test" onclick="changeMode('test')">Évaluation</button>
-                </div>
-                <button class="icon-btn" id="btn-inverse-toggle" onclick="toggleExerciseType()">🔄</button>
+    <!-- En-tête Global -->
+    <header>
+        <h1 class="main-title">Calcul Mental & Boulier</h1>
+        
+        <div class="controls-group">
+            <div class="segmented">
+                <button class="tool-btn mode-btn active" onclick="setMode('autonomie', 'mode-autonomie', '#10b981')">Autonomie</button>
+                <button class="tool-btn mode-btn" onclick="setMode('entrainement', 'mode-entrainement', '#8b5cf6')">Entraînement</button>
+                <button class="tool-btn mode-btn" onclick="setMode('evaluation', 'mode-evaluation', '#f97316')">Évaluation</button>
             </div>
-
-            <!-- Représentation du nombre (123, ABC, +) -->
-            <div class="submodes-container">
-                <button class="submode-btn active" id="submode-123" onclick="changeRepresentation('123')">123</button>
-                <button class="submode-btn" id="submode-ABC" onclick="changeRepresentation('ABC')">ABC</button>
-                <button class="submode-btn" id="submode-plus" onclick="changeRepresentation('+')">+</button>
-            </div>
-
-            <!-- Sélecteur de Niveaux sur 1 ligne (≤10, ≤20, ≤69, ≤100, ≤999) -->
-            <div class="levels-container" id="levels-selector">
-                <button class="level-btn active" id="lvl-10" onclick="changeMaxNumber(10)">≤10</button>
-                <button class="level-btn" id="lvl-20" onclick="changeMaxNumber(20)">≤20</button>
-                <button class="level-btn" id="lvl-69" onclick="changeMaxNumber(69)">≤69</button>
-                <button class="level-btn" id="lvl-100" onclick="changeMaxNumber(100)">≤100</button>
-                <button class="level-btn" id="lvl-999" onclick="changeMaxNumber(999)">≤999</button>
-            </div>
-
-            <!-- Écran -->
-            <div class="display-container" id="number-display">0</div>
-
-            <!-- Clavier Virtuel -->
-            <div class="numeric-keyboard" id="num-keyboard">
-                <button class="key-btn" onclick="pressKey('1')">1</button>
-                <button class="key-btn" onclick="pressKey('2')">2</button>
-                <button class="key-btn" onclick="pressKey('3')">3</button>
-                <button class="key-btn" onclick="pressKey('4')">4</button>
-                <button class="key-btn" onclick="pressKey('5')">5</button>
-                <button class="key-btn" onclick="pressKey('6')">6</button>
-                <button class="key-btn" onclick="pressKey('7')">7</button>
-                <button class="key-btn" onclick="pressKey('8')">8</button>
-                <button class="key-btn" onclick="pressKey('9')">9</button>
-                <button class="key-btn" onclick="pressKey('0')">0</button>
+            
+            <div class="segmented" id="timer-config-container">
+                <button class="tool-btn timer-btn active" data-val="0" onclick="setTimer(0, this)" title="Infini">∞</button>
+                <button class="tool-btn timer-btn" data-val="120" onclick="setTimer(120, this)">120s</button>
+                <button class="tool-btn timer-btn" data-val="60" onclick="setTimer(60, this)">60s</button>
+                <button class="tool-btn timer-btn" data-val="30" onclick="setTimer(30, this)">30s</button>
+                <button class="tool-btn timer-btn" data-val="15" onclick="setTimer(15, this)">15s</button>
+                <button class="tool-btn timer-btn" data-val="10" onclick="setTimer(10, this)">10s</button>
+                <button class="tool-btn timer-btn" data-val="5" onclick="setTimer(5, this)">5s</button>
             </div>
         </div>
+    </header>
 
-        <!-- Panneau de droite : Le Boulier d'aide interactif -->
-        <div class="right-panel">
-            <div style="font-weight: bold; color: #2c3e50; margin-bottom: 8px; font-size: 0.95rem;">💡 Boulier d'aide interactif</div>
+    <!-- Conteneur en 2 colonnes -->
+    <div class="container">
+        <!-- COLONNE GAUCHE : Application de Calcul Mental -->
+        <div class="workspace" id="app-workspace">
+            <!-- Injecté dynamiquement par le script -->
+        </div>
+
+        <!-- COLONNE DROITE : Le Boulier Actif d'Aide -->
+        <div class="abacus-card">
+            <div class="abacus-header">🧮 Boulier de manipulation</div>
+            
             <div class="abacus-frame" id="abacus-main-frame">
                 <div class="beam">
-                    <button class="beam-btn" id="reset-button" onclick="resetAbacus()">✕</button>
-                    <button class="beam-btn" id="action-button" onclick="handleActionClick()">✓</button>
+                    <button class="beam-btn" id="reset-abacus-btn" onclick="resetAbacusOnly()" title="Remettre à zéro">✕</button>
+                    <div style="flex:1;"></div>
                 </div>
                 
                 <!-- Centaines -->
                 <div class="column" id="col-2">
                     <div class="rod"></div>
                     <div class="bead top" data-idx="0" style="top: 5px;" onclick="clickTopBead('col-2', 0)"></div>
-                    <div class="bead top" data-idx="1" style="top: 38px;" onclick="clickTopBead('col-2', 1)"></div>
-                    <div class="bead bottom" onclick="clickBottomBead('col-2', 0)" style="top: 200px;"></div>
-                    <div class="bead bottom" onclick="clickBottomBead('col-2', 1)" style="top: 233px;"></div>
-                    <div class="bead bottom" onclick="clickBottomBead('col-2', 2)" style="top: 266px;"></div>
-                    <div class="bead bottom" onclick="clickBottomBead('col-2', 3)" style="top: 299px;"></div>
-                    <div class="bead bottom" onclick="clickBottomBead('col-2', 4)" style="top: 332px;"></div>
+                    <div class="bead top" data-idx="1" style="top: 35px;" onclick="clickTopBead('col-2', 1)"></div>
+                    <div class="bead bottom" onclick="clickBottomBead('col-2', 0)" style="top: 175px;"></div>
+                    <div class="bead bottom" onclick="clickBottomBead('col-2', 1)" style="top: 205px;"></div>
+                    <div class="bead bottom" onclick="clickBottomBead('col-2', 2)" style="top: 235px;"></div>
+                    <div class="bead bottom" onclick="clickBottomBead('col-2', 3)" style="top: 265px;"></div>
+                    <div class="bead bottom" onclick="clickBottomBead('col-2', 4)" style="top: 295px;"></div>
                 </div>
 
                 <!-- Dizaines -->
                 <div class="column" id="col-1">
                     <div class="rod"></div>
                     <div class="bead top" data-idx="0" style="top: 5px;" onclick="clickTopBead('col-1', 0)"></div>
-                    <div class="bead top" data-idx="1" style="top: 38px;" onclick="clickTopBead('col-1', 1)"></div>
-                    <div class="bead bottom" onclick="clickBottomBead('col-1', 0)" style="top: 200px;"></div>
-                    <div class="bead bottom" onclick="clickBottomBead('col-1', 1)" style="top: 233px;"></div>
-                    <div class="bead bottom" onclick="clickBottomBead('col-1', 2)" style="top: 266px;"></div>
-                    <div class="bead bottom" onclick="clickBottomBead('col-1', 3)" style="top: 299px;"></div>
-                    <div class="bead bottom" onclick="clickBottomBead('col-1', 4)" style="top: 332px;"></div>
+                    <div class="bead top" data-idx="1" style="top: 35px;" onclick="clickTopBead('col-1', 1)"></div>
+                    <div class="bead bottom" onclick="clickBottomBead('col-1', 0)" style="top: 175px;"></div>
+                    <div class="bead bottom" onclick="clickBottomBead('col-1', 1)" style="top: 205px;"></div>
+                    <div class="bead bottom" onclick="clickBottomBead('col-1', 2)" style="top: 235px;"></div>
+                    <div class="bead bottom" onclick="clickBottomBead('col-1', 3)" style="top: 265px;"></div>
+                    <div class="bead bottom" onclick="clickBottomBead('col-1', 4)" style="top: 295px;"></div>
                 </div>
 
                 <!-- Unités -->
                 <div class="column" id="col-0">
                     <div class="rod"></div>
                     <div class="bead top" data-idx="0" style="top: 5px;" onclick="clickTopBead('col-0', 0)"></div>
-                    <div class="bead top" data-idx="1" style="top: 38px;" onclick="clickTopBead('col-0', 1)"></div>
-                    <div class="bead bottom" onclick="clickBottomBead('col-0', 0)" style="top: 200px;"></div>
-                    <div class="bead bottom" onclick="clickBottomBead('col-0', 1)" style="top: 233px;"></div>
-                    <div class="bead bottom" onclick="clickBottomBead('col-0', 2)" style="top: 266px;"></div>
-                    <div class="bead bottom" onclick="clickBottomBead('col-0', 3)" style="top: 299px;"></div>
-                    <div class="bead bottom" onclick="clickBottomBead('col-0', 4)" style="top: 332px;"></div>
+                    <div class="bead top" data-idx="1" style="top: 35px;" onclick="clickTopBead('col-0', 1)"></div>
+                    <div class="bead bottom" onclick="clickBottomBead('col-0', 0)" style="top: 175px;"></div>
+                    <div class="bead bottom" onclick="clickBottomBead('col-0', 1)" style="top: 205px;"></div>
+                    <div class="bead bottom" onclick="clickBottomBead('col-0', 2)" style="top: 235px;"></div>
+                    <div class="bead bottom" onclick="clickBottomBead('col-0', 3)" style="top: 265px;"></div>
+                    <div class="bead bottom" onclick="clickBottomBead('col-0', 4)" style="top: 295px;"></div>
                 </div>
             </div>
 
-            <div class="labels">
-                <div class="label" style="color: #e67e22;">C</div>
-                <div class="label" style="color: #2ecc71;">D</div>
-                <div class="label" style="color: #e74c3c;">U</div>
+            <div class="abacus-labels">
+                <div class="abacus-label-item" style="color: #e67e22;">C</div>
+                <div class="abacus-label-item" style="color: #2ecc71;">D</div>
+                <div class="abacus-label-item" style="color: #e74c3c;">U</div>
             </div>
+
+            <div class="abacus-display" id="abacus-total-display">Valeur : 0</div>
         </div>
     </div>
 
     <script>
-        const POS_TOP_DOWN = [97, 64];  
-        const POS_TOP_UP = [5, 38];      
-        const POS_BOTTOM_UP = [155, 188, 221, 254, 287];   
-        const POS_BOTTOM_DOWN = [200, 233, 266, 299, 332]; 
+        // --- LOGIQUE DU BOULIER ---
+        const POS_TOP_DOWN = [85, 52];  
+        const POS_TOP_UP = [5, 35];      
+        const POS_BOTTOM_UP = [135, 165, 195, 225, 255];    
+        const POS_BOTTOM_DOWN = [175, 205, 235, 265, 295];  
 
-        let currentMode = 'libre';
-        let representationMode = '123'; 
-        let exerciseType = 'affiche'; 
-        let maxNumber = 10;
-        let targetNumber = 0;
-        let studentAnswer = "";
-        let testStep = 0;
-        let testScore = 0;
-
-        const columns = [
+        const abacusColumns = [
             { id: "col-0", multiplier: 1, top0: false, top1: false, bottomCount: 0 },
             { id: "col-1", multiplier: 10, top0: false, top1: false, bottomCount: 0 },
             { id: "col-2", multiplier: 100, top0: false, top1: false, bottomCount: 0 }
         ];
 
         function clickTopBead(colId, idx) {
-            if (exerciseType === 'ecris' && currentMode !== 'libre') return;
-            const colState = columns.find(c => c.id === colId);
+            const colState = abacusColumns.find(c => c.id === colId);
             if (!colState) return;
 
             if (idx === 0) {
@@ -488,23 +558,22 @@
                 if (colState.top1) { colState.top1 = false; colState.top0 = false; }
                 else { colState.top1 = true; }
             }
-            refreshVisuals(document.getElementById(colId), colState);
-            checkCurrentState();
+            refreshAbacusVisuals(document.getElementById(colId), colState);
+            updateAbacusTotalDisplay();
         }
 
         function clickBottomBead(colId, index) {
-            if (exerciseType === 'ecris' && currentMode !== 'libre') return;
-            const colState = columns.find(c => c.id === colId);
+            const colState = abacusColumns.find(c => c.id === colId);
             if (!colState) return;
 
             if (index >= colState.bottomCount) { colState.bottomCount = index + 1; }
             else { colState.bottomCount = index; }
 
-            refreshVisuals(document.getElementById(colId), colState);
-            checkCurrentState();
+            refreshAbacusVisuals(document.getElementById(colId), colState);
+            updateAbacusTotalDisplay();
         }
 
-        function refreshVisuals(colEl, state) {
+        function refreshAbacusVisuals(colEl, state) {
             if (!colEl) return;
             const topBeads = Array.from(colEl.querySelectorAll('.bead.top'));
             const bottomBeads = Array.from(colEl.querySelectorAll('.bead.bottom'));
@@ -522,277 +591,364 @@
             });
         }
 
-        function getCurrentTotal() {
+        function getAbacusTotal() {
             let total = 0;
-            columns.forEach(col => {
+            abacusColumns.forEach(col => {
                 let countHigh = (col.top0 ? 1 : 0) + (col.top1 ? 1 : 0);
                 total += ((countHigh * 5) + col.bottomCount) * col.multiplier;
             });
             return total;
         }
 
-        function numberToWords(n) {
-            if (n === 0) return "zéro";
-            const units = ["", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf", "dix", "onze", "douze", "treize", "quatorze", "quinze", "seize", "dix-sept", "dix-huit", "dix-neuf"];
-            const tens = ["", "dix", "vingt", "trente", "quarante", "cinquante", "soixante", "soixante-dix", "quatre-vingt", "quatre-vingt-dix"];
-
-            if (n < 20) return units[n];
-            if (n < 100) {
-                let t = Math.floor(n / 10);
-                let r = n % 10;
-                if (t === 7 || t === 9) { t--; r += 10; }
-                let prefix = tens[t];
-                if (r === 1 && t !== 8) prefix += "-et-un";
-                else if (r > 0) prefix += "-" + units[r];
-                else if (t === 8) prefix += "s";
-                return prefix;
-            }
-            if (n < 1000) {
-                let c = Math.floor(n / 100);
-                let r = n % 100;
-                let prefix = (c === 1) ? "cent" : units[c] + "-cent";
-                if (r === 0 && c > 1) prefix += "s";
-                if (r > 0) prefix += "-" + numberToWords(r);
-                return prefix;
-            }
-            return n.toString();
-        }
-
-        function numberToDecomposition(n) {
-            if (n === 0) return "0";
-            let parts = [];
-            let c = Math.floor(n / 100) * 100;
-            let d = Math.floor((n % 100) / 10) * 10;
-            let u = n % 10;
-
-            if (c > 0) parts.push(c);
-            if (d > 0) parts.push(d);
-            if (u > 0) parts.push(u);
-
-            return parts.join(" + ");
-        }
-
-        function formatDisplayValue(val) {
-            if (representationMode === 'ABC') return numberToWords(val);
-            if (representationMode === '+') return numberToDecomposition(val);
-            return val.toString();
-        }
-
-        function checkCurrentState() {
-            const currentTotal = getCurrentTotal();
-            const display = document.getElementById('number-display');
-
-            if (currentMode === 'libre') {
-                display.innerText = formatDisplayValue(currentTotal);
-            } 
-            else if (currentMode === 'entrainement') {
-                if (exerciseType === 'affiche') {
-                    display.innerText = formatDisplayValue(targetNumber);
-                    if (currentTotal === targetNumber) {
-                        display.classList.add('success');
-                        display.innerText = "Bravo ! 🎉";
-                        setTimeout(() => {
-                            display.classList.remove('success');
-                            generateNewTarget();
-                        }, 1400);
-                    }
-                } else {
-                    display.innerText = studentAnswer === "" ? "?" : studentAnswer;
-                }
-            } 
-            else if (currentMode === 'test') {
-                if (exerciseType === 'affiche') {
-                    display.innerText = formatDisplayValue(targetNumber);
-                } else {
-                    display.innerText = studentAnswer === "" ? "?" : studentAnswer;
-                }
-            }
-        }
-
-        function changeRepresentation(rep) {
-            representationMode = rep;
-            document.querySelectorAll('.submode-btn').forEach(btn => btn.classList.remove('active'));
-            const activeSubBtn = document.getElementById('submode-' + (rep === '+' ? 'plus' : rep));
-            if (activeSubBtn) activeSubBtn.classList.add('active');
-            checkCurrentState();
-        }
-
-        function toggleExerciseType() {
-            if (currentMode === 'libre') return;
-            exerciseType = (exerciseType === 'affiche') ? 'ecris' : 'affiche';
-            
-            const btn = document.getElementById('btn-inverse-toggle');
-            if (exerciseType === 'ecris') {
-                btn.classList.add('active');
-                btn.style.backgroundColor = `var(--frame-${currentMode})`;
-                btn.style.borderColor = `var(--frame-${currentMode})`;
-            } else {
-                btn.classList.remove('active');
-                btn.style.backgroundColor = "white";
-                btn.style.borderColor = "#b2bec3";
-            }
-            generateNewTarget();
-        }
-
-        function pressKey(key) {
-            if (currentMode === 'libre' || exerciseType === 'affiche') return;
-            if (studentAnswer.length < 3) studentAnswer += key;
-            checkCurrentState();
-        }
-
-        function resetAbacus() {
-            if (exerciseType === 'ecris' && currentMode !== 'libre') {
-                studentAnswer = "";
-            } else {
-                resetAbacusOnly();
-            }
-            checkCurrentState();
-        }
-
-        function changeMaxNumber(max) {
-            maxNumber = max;
-            document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('active'));
-            const activeLvlBtn = document.getElementById('lvl-' + max);
-            if (activeLvlBtn) activeLvlBtn.classList.add('active');
-            
-            if (currentMode !== 'libre') generateNewTarget();
-        }
-
-        function changeMode(mode) {
-            currentMode = mode;
-            exerciseType = 'affiche';
-            
-            const btnToggle = document.getElementById('btn-inverse-toggle');
-            if (btnToggle) {
-                btnToggle.classList.remove('active');
-                btnToggle.style.backgroundColor = "white";
-                btnToggle.style.borderColor = "#b2bec3";
-                btnToggle.style.display = (mode === 'entrainement') ? 'flex' : 'none';
-            }
-
-            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
-            const activeModeBtn = document.getElementById('btn-' + mode);
-            if (activeModeBtn) activeModeBtn.classList.add('active');
-            
-            const frame = document.getElementById('abacus-main-frame');
-            const actionBtn = document.getElementById('action-button');
-            const display = document.getElementById('number-display');
-            if (display) display.classList.remove('success');
-
-            resetAbacusOnly();
-
-            if (mode === 'libre') {
-                if (frame) frame.style.borderColor = "var(--frame-libre)";
-                if (actionBtn) actionBtn.style.display = 'none';
-                document.getElementById('num-keyboard').style.display = 'none';
-                checkCurrentState();
-            } 
-            else if (mode === 'entrainement') {
-                if (frame) frame.style.borderColor = "var(--frame-entrainement)";
-                if (actionBtn) actionBtn.style.display = 'none';
-                generateNewTarget();
-            } 
-            else if (mode === 'test') {
-                if (frame) frame.style.borderColor = "var(--frame-test)";
-                testStep = 1;
-                testScore = 0;
-                generateNewTarget();
-            }
-        }
-
-        function generateNewTarget() {
-            if (currentMode === 'test') {
-                exerciseType = Math.random() > 0.5 ? 'affiche' : 'ecris';
-            }
-
-            targetNumber = Math.floor(Math.random() * maxNumber) + 1;
-            studentAnswer = "";
-            resetAbacusOnly();
-
-            const actionBtn = document.getElementById('action-button');
-            const keyboard = document.getElementById('num-keyboard');
-
-            if (currentMode === 'entrainement') {
-                if (exerciseType === 'affiche') {
-                    if (actionBtn) actionBtn.style.display = 'none';
-                    if (keyboard) keyboard.style.display = 'none';
-                } else {
-                    injectValueToAbacus(targetNumber);
-                    if (actionBtn) actionBtn.style.display = 'flex';
-                    if (keyboard) keyboard.style.display = 'grid';
-                }
-            } 
-            else if (currentMode === 'test') {
-                if (actionBtn) actionBtn.style.display = 'flex';
-                if (exerciseType === 'affiche') {
-                    if (keyboard) keyboard.style.display = 'none';
-                } else {
-                    injectValueToAbacus(targetNumber);
-                    if (keyboard) keyboard.style.display = 'grid';
-                }
-            }
-            checkCurrentState();
-        }
-
-        function handleActionClick() {
-            const display = document.getElementById('number-display');
-
-            if (currentMode === 'entrainement' && exerciseType === 'ecris') {
-                if (parseInt(studentAnswer) === targetNumber) {
-                    display.classList.add('success'); display.innerText = "Bravo ! 🎉";
-                    setTimeout(() => { display.classList.remove('success'); generateNewTarget(); }, 1400);
-                } else {
-                    display.innerText = "Aïe ! 🤔";
-                    setTimeout(() => { checkCurrentState(); }, 1200);
-                }
-                return;
-            }
-
-            if (testStep <= 5) {
-                let isCorrect = (exerciseType === 'affiche') ? (getCurrentTotal() === targetNumber) : (parseInt(studentAnswer) === targetNumber);
-                if (isCorrect) testScore++;
-                testStep++;
-                
-                if (testStep <= 5) {
-                    generateNewTarget();
-                } else {
-                    document.getElementById('num-keyboard').style.display = 'none';
-                    document.getElementById('action-button').style.display = 'none';
-                    let appreciation = testScore >= 4 ? "🥇 Excellent !" : (testScore >= 2 ? "👍 Pas mal !" : "💪 Continue !");
-                    display.innerText = `Score : ${testScore} / 5 \n ${appreciation}`;
-                }
-            } else {
-                changeMode('test');
-            }
-        }
-
-        function injectValueToAbacus(val) {
-            resetAbacusOnly();
-            let temp = val;
-            columns.slice().reverse().forEach((col) => {
-                let digit = Math.floor(temp / col.multiplier);
-                temp %= col.multiplier;
-                
-                if (digit >= 5) {
-                    if (digit >= 10) { col.top0 = true; col.top1 = true; col.bottomCount = digit - 10; }
-                    else { col.top1 = true; col.bottomCount = digit - 5; }
-                } else {
-                    col.bottomCount = digit;
-                }
-                refreshVisuals(document.getElementById(col.id), col);
-            });
+        function updateAbacusTotalDisplay() {
+            const disp = document.getElementById('abacus-total-display');
+            if (disp) disp.innerText = `Valeur : ${getAbacusTotal()}`;
         }
 
         function resetAbacusOnly() {
-            columns.forEach(col => {
+            abacusColumns.forEach(col => {
                 col.top0 = false;
                 col.top1 = false;
                 col.bottomCount = 0;
-                refreshVisuals(document.getElementById(col.id), col);
+                refreshAbacusVisuals(document.getElementById(col.id), col);
             });
+            updateAbacusTotalDisplay();
         }
 
-        changeMode('libre');
+
+        // --- LOGIQUE CALCUL MENTAL ---
+        const studentsList = [
+            "Élève 1", "Élève 2", "Élève 3", "Élève 4", "Élève 5", "Élève 6",
+            "Élève 7", "Élève 8", "Élève 9", "Élève 10", "Élève 11", "Élève 12",
+            "Élève 13", "Élève 14", "Élève 15", "Élève 16", "Élève 17", "Élève 18",
+            "Élève 19", "Élève 20", "Élève 21", "Élève 22", "Élève 23", "Élève 24",
+            "Élève 25", "Élève 26", "Élève 27", "Élève 28", "Élève 29", "Élève 30"
+        ];
+
+        const progressionData = {
+            "A": { t: "+1 / -1", gen: () => { let n=Math.floor(Math.random()*20)+1; let op=Math.random()>0.5?'+':'-'; return { q: `${n} ${op} 1 =`, r: op==='+'?n+1:n-1, s: "Avance ou recule d'une case."}; }},
+            "B": { t: "Maisons 2, 3", gen: () => { let max=Math.random()>0.5?2:3; let n=Math.floor(Math.random()*(max+1)); return { q: `${n} + ... = ${max}`, r: max-n, s: `Complète jusqu'à ${max}.`}; }},
+            "C": { t: "Maisons 4, 5", gen: () => { let max=Math.random()>0.5?4:5; let n=Math.floor(Math.random()*(max+1)); return { q: `${n} + ... = ${max}`, r: max-n, s: `Complète jusqu'à ${max}.`}; }},
+            "D": { t: "Décomp. 5", gen: () => { let n=Math.floor(Math.random()*5)+1; return { q: `5 + ${n} =`, r: 5+n, s: `Une main (5) et encore ${n}.`}; }},
+            "E": { t: "Doubles ≤10", gen: () => { let n=Math.floor(Math.random()*5)+1; return { q: `Double de ${n}`, r: n*2, s: `C'est ${n} + ${n}.`}; }},
+            "F": { t: "Presque doubles", gen: () => { let n=Math.floor(Math.random()*4)+2; return { q: `${n} + ${n+1} =`, r: n+(n+1), s: `Double de ${n} plus 1.`}; }},
+            "G": { t: "Maison 6", gen: () => { let n=Math.floor(Math.random()*7); return { q: `${n} + ... = 6`, r: 6-n, s: `Complément à 6.`}; }},
+            "H": { t: "Compléments 10", gen: () => { let n=Math.floor(Math.random()*11); return { q: `${n} + ... = 10`, r: 10-n, s: `Ami de ${n} pour faire 10.`}; }},
+            "I": { t: "Doubles <20", gen: () => { let n=Math.floor(Math.random()*4)+6; return { q: `Double de ${n}`, r: n*2, s: `C'est ${n} + ${n}.`}; }},
+            "J": { t: "+/- 10", gen: () => { let n=Math.floor(Math.random()*80)+10; let op=Math.random()>0.5?'+':'-'; return { q: `${n} ${op} 10 =`, r: op==='+'?n+10:n-10, s: `Les unités ne changent pas.`}; }},
+            "K": { t: "10 +/- U", gen: () => { let n=Math.floor(Math.random()*8)+2; let op=Math.random()>0.5?'+':'-'; return { q: `10 ${op} ${n} =`, r: op==='+'?10+n:10-n, s: `S'appuyer sur la dizaine.`}; }},
+            "L": { t: "Maison 7", gen: () => { let n=Math.floor(Math.random()*8); return { q: `${n} + ... = 7`, r: 7-n, s: `Complément à 7.`}; }},
+            "M": { t: "Doubles D", gen: () => { let n=(Math.floor(Math.random()*4)+1)*10; return { q: `Double de ${n}`, r: n*2, s: `Double les dizaines, garde le 0.`}; }},
+            "N": { t: "Maison 8", gen: () => { let n=Math.floor(Math.random()*9); return { q: `${n} + ... = 8`, r: 8-n, s: `Complément à 8.`}; }},
+            "O": { t: "Comp. D sup", gen: () => { let d=(Math.floor(Math.random()*8)+1)*10; let n=d+Math.floor(Math.random()*9)+1; return { q: `De ${n} à ${d+10} ?`, r: (d+10)-n, s: `Complément à 10 pour l'unité.`}; }},
+            "P": { t: "D +/- D", gen: () => { let n=Math.floor(Math.random()*50)+10; let d=(Math.floor(Math.random()*4)+1)*10; let op=Math.random()>0.5?'+':'-'; return { q: `${n} ${op} ${d} =`, r: op==='+'?n+d:n-d, s: `Agir sur les dizaines.`}; }},
+            "Q": { t: "Moitiés", gen: () => { let n=(Math.floor(Math.random()*10)+1)*2; return { q: `Moitié de ${n}`, r: n/2, s: `Partage en deux.`}; }},
+            "R": { t: "Ajouter D", gen: () => { let n=Math.floor(Math.random()*10)+1; let d=(Math.floor(Math.random()*8)+2)*10; return { q: `${n} + ${d} =`, r: n+d, s: `U avec U, D avec D.`}; }},
+            "S": { t: "N + N <100", gen: () => { let a=Math.floor(Math.random()*40)+10; let b=Math.floor(Math.random()*40)+10; return { q: `${a} + ${b} =`, r: a+b, s: `Dizaines ensemble, unités ensemble.`}; }},
+            "T": { t: "D - U", gen: () => { let d=(Math.floor(Math.random()*8)+2)*10; let u=Math.floor(Math.random()*9)+1; return { q: `${d} - ${u} =`, r: d-u, s: `Casse la dizaine.`}; }},
+            "U": { t: "Maison 9", gen: () => { let n=Math.floor(Math.random()*10); return { q: `${n} + ... = 9`, r: 9-n, s: `Complément à 9.`}; }},
+            "V": { t: "DU + DU", gen: () => { let a=Math.floor(Math.random()*30)+11; let b=Math.floor(Math.random()*30)+11; return { q: `${a} + ${b} =`, r: a+b, s: `Dans ta tête : D+D et U+U.`}; }},
+            "W": { t: "+2 et +7", gen: () => { let a=Math.floor(Math.random()*10)+1; let b=Math.random()>0.5?2:7; return { q: `${a} + ${b} =`, r: a+b, s: `Surcompte.`}; }},
+            "X": { t: "+3 et +8", gen: () => { let a=Math.floor(Math.random()*10)+1; let b=Math.random()>0.5?3:8; return { q: `${a} + ${b} =`, r: a+b, s: b===8?`+10 puis enlève 2.`:`Avance de 3.`}; }},
+            "Y": { t: "+4 et +9", gen: () => { let a=Math.floor(Math.random()*10)+1; let b=Math.random()>0.5?4:9; return { q: `${a} + ${b} =`, r: a+b, s: b===9?`+10 puis enlève 1.`:`Avance de 4.`}; }},
+            "Z": { t: "+5 et +6", gen: () => { let a=Math.floor(Math.random()*10)+1; let b=Math.random()>0.5?5:6; return { q: `${a} + ${b} =`, r: a+b, s: `Utilise le 5.`}; }}
+        };
+
+        let currentMode = 'mode-autonomie';
+        let players = [];
+        let timerConfig = 0;
+
+        function setMode(mode, className, color) {
+            document.body.className = className;
+            currentMode = className;
+            document.documentElement.style.setProperty('--current-mode', color);
+            
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (className === 'mode-autonomie') {
+                const infiniteBtn = document.querySelector('.timer-btn[data-val="0"]');
+                if(infiniteBtn) setTimer(0, infiniteBtn);
+            } else {
+                const activeBtn = document.querySelector('.timer-btn.active');
+                timerConfig = activeBtn ? parseInt(activeBtn.dataset.val) : 0;
+            }
+            players.forEach(p => stopSession(p.id));
+        }
+
+        function setTimer(val, btnElem) {
+            timerConfig = val;
+            document.querySelectorAll('.timer-btn').forEach(btn => btn.classList.remove('active'));
+            if(btnElem) btnElem.classList.add('active');
+            players.forEach(p => {
+                if(p.currentProg) startQuestion(p.id);
+            }); 
+        }
+
+        function buildWorkspace() {
+            const ws = document.getElementById('app-workspace');
+            ws.innerHTML = '';
+            players = [];
+
+            let studentOptions = '<option value="">Qui es-tu ?</option>';
+            studentsList.forEach(s => studentOptions += `<option value="${s}">${s}</option>`);
+
+            players.push({ id: 1, timer: null, currentQ: null, currentProg: null, score: 0, qCount: 0, evalFinished: false });
+            
+            let gridHTML = '';
+            for(let key in progressionData) {
+                gridHTML += `<button class="prog-btn" onclick="selectProgression(1, '${key}')" title="${progressionData[key].t}">${key}</button>`;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'player-card';
+            card.innerHTML = `
+                <div class="player-header">
+                    <span id="timer-badge-1" class="timer-badge" style="display:none;"></span>
+                </div>
+                
+                <div class="student-select-container">
+                    <select id="student-1" class="student-select" onchange="resetIfEval(1)">
+                        ${studentOptions}
+                    </select>
+                </div>
+
+                <button id="btn-choose-1" class="btn-choose-prog" onclick="toggleProgGrid(1)">Choisir une notion de calcul</button>
+                
+                <div id="prog-grid-1" class="prog-grid">${gridHTML}</div>
+
+                <div id="exercise-container-1" class="exercise-container">
+                    <div id="progress-1" class="progress-indicator">Bonnes réponses : 0</div>
+                    
+                    <div id="display-1" class="exercise-display">...</div>
+                    
+                    <div class="help-container">
+                        <button id="btn-help-1" class="help-btn" onclick="showHelp(1)">💡 Indice</button>
+                        <div id="help-box-1" class="strategy-box"></div>
+                    </div>
+                    
+                    <input type="text" id="input-1" class="answer-input" readonly placeholder="?">
+                    
+                    <div class="numpad">
+                        <button class="num-btn" onclick="typeNum(1, 1)">1</button>
+                        <button class="num-btn" onclick="typeNum(1, 2)">2</button>
+                        <button class="num-btn" onclick="typeNum(1, 3)">3</button>
+                        <button class="num-btn" onclick="typeNum(1, 4)">4</button>
+                        <button class="num-btn" onclick="typeNum(1, 5)">5</button>
+                        <button class="num-btn" onclick="typeNum(1, 6)">6</button>
+                        <button class="num-btn" onclick="typeNum(1, 7)">7</button>
+                        <button class="num-btn" onclick="typeNum(1, 8)">8</button>
+                        <button class="num-btn" onclick="typeNum(1, 9)">9</button>
+                        <button class="num-btn btn-del" onclick="delNum(1)">✖</button>
+                        <button class="num-btn" onclick="typeNum(1, 0)">0</button>
+                        <button class="num-btn btn-val" id="btn-val-1" onclick="validate(1)">✔</button>
+                    </div>
+                </div>
+                
+                <div id="feedback-1" class="feedback-area"></div>
+            `;
+            ws.appendChild(card);
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if(players.length > 0 && players[0].currentProg && !players[0].evalFinished) {
+                if(event.key >= '0' && event.key <= '9') {
+                    typeNum(1, parseInt(event.key));
+                } else if(event.key === 'Backspace') {
+                    delNum(1);
+                } else if(event.key === 'Enter') {
+                    validate(1);
+                }
+            }
+        });
+
+        function showHelp(id) {
+            document.getElementById(`help-box-${id}`).style.display = 'inline-block';
+            document.getElementById(`btn-help-${id}`).style.display = 'none';
+        }
+
+        function typeNum(id, num) {
+            const input = document.getElementById(`input-${id}`);
+            if(input.value.length < 4) input.value += num;
+        }
+        function delNum(id) {
+            const input = document.getElementById(`input-${id}`);
+            input.value = input.value.slice(0, -1);
+        }
+
+        function toggleProgGrid(id) {
+            const grid = document.getElementById(`prog-grid-${id}`);
+            grid.style.display = grid.style.display === 'none' ? 'grid' : 'none';
+        }
+
+        function selectProgression(id, key) {
+            const p = players.find(x => x.id === id);
+            p.currentProg = key;
+            
+            document.getElementById(`prog-grid-${id}`).style.display = 'none';
+            document.getElementById(`btn-choose-${id}`).innerText = `Notion : ${key}. ${progressionData[key].t}`;
+            document.getElementById(`exercise-container-${id}`).style.display = 'block';
+            
+            resetSession(id);
+        }
+
+        function resetIfEval(id) {
+            if(currentMode === 'mode-evaluation') resetSession(id);
+        }
+
+        function stopSession(id) {
+            const p = players.find(x => x.id === id);
+            clearInterval(p.timer);
+            document.getElementById(`exercise-container-${id}`).style.display = 'none';
+            document.getElementById(`prog-grid-${id}`).style.display = 'grid';
+            document.getElementById(`btn-choose-${id}`).innerText = "Choisir une notion de calcul";
+            document.getElementById(`feedback-${id}`).innerHTML = "";
+            p.currentProg = null;
+        }
+
+        function resetSession(id) {
+            const p = players.find(x => x.id === id);
+            p.score = 0; p.qCount = 0; p.evalFinished = false;
+            document.getElementById(`btn-val-${id}`).disabled = false;
+            
+            if (currentMode === 'mode-evaluation') {
+                document.getElementById(`progress-${id}`).innerText = `Question ${p.qCount + 1} / 10`;
+            } else if (currentMode === 'mode-entrainement') {
+                document.getElementById(`progress-${id}`).innerText = `Bonnes réponses : ${p.score}`;
+            }
+
+            startQuestion(id);
+        }
+
+        function startQuestion(id) {
+            const p = players.find(x => x.id === id);
+            if(!p.currentProg || p.evalFinished) return;
+            
+            p.currentQ = progressionData[p.currentProg].gen();
+            document.getElementById(`display-${id}`).innerText = p.currentQ.q;
+            document.getElementById(`input-${id}`).value = '';
+            document.getElementById(`feedback-${id}`).className = 'feedback-area';
+            document.getElementById(`feedback-${id}`).innerHTML = '';
+
+            document.getElementById(`btn-help-${id}`).style.display = 'inline-flex';
+            document.getElementById(`help-box-${id}`).style.display = 'none';
+            document.getElementById(`help-box-${id}`).innerHTML = `💡 ${p.currentQ.s}`;
+            
+            runTimer(id);
+        }
+
+        function runTimer(id) {
+            const p = players.find(x => x.id === id);
+            clearInterval(p.timer);
+            
+            const badge = document.getElementById(`timer-badge-${id}`);
+            if(timerConfig === 0) {
+                badge.style.display = 'none';
+                return;
+            }
+            
+            badge.style.display = 'block';
+            let timeLeft = timerConfig;
+            badge.innerText = `${timeLeft}s`;
+            
+            p.timer = setInterval(() => {
+                timeLeft--;
+                badge.innerText = `${timeLeft}s`;
+                if(timeLeft <= 0) {
+                    clearInterval(p.timer);
+                    processAnswer(id, null);
+                }
+            }, 1000);
+        }
+
+        function validate(id) {
+            const input = document.getElementById(`input-${id}`);
+            if(input.value === '') return;
+            processAnswer(id, parseInt(input.value));
+        }
+
+        function processAnswer(id, userVal) {
+            const p = players.find(x => x.id === id);
+            if(!p.currentQ || p.evalFinished) return;
+            
+            clearInterval(p.timer);
+            const feedback = document.getElementById(`feedback-${id}`);
+            const display = document.getElementById(`display-${id}`);
+
+            document.getElementById(`btn-help-${id}`).style.display = 'none';
+            document.getElementById(`help-box-${id}`).style.display = 'none';
+
+            let fullCorrection = p.currentQ.q;
+            if (fullCorrection.includes('...')) {
+                fullCorrection = fullCorrection.replace('...', `<span style="color: #2563eb;">${p.currentQ.r}</span>`);
+            } else if (fullCorrection.endsWith('=')) {
+                fullCorrection += ` <span style="color: #2563eb;">${p.currentQ.r}</span>`;
+            } else {
+                fullCorrection += ` ➔ <span style="color: #2563eb;">${p.currentQ.r}</span>`;
+            }
+
+            display.innerHTML = `<div style="line-height: 1;">${fullCorrection}</div>`;
+
+            if(userVal === p.currentQ.r) {
+                p.score++;
+                feedback.className = 'feedback-area correct';
+                feedback.innerHTML = `✅ Exact !`;
+            } else {
+                feedback.className = 'feedback-area incorrect';
+                if (userVal === null) {
+                    feedback.innerHTML = `❌ Temps écoulé ! Regarde la correction.`;
+                } else {
+                    feedback.innerHTML = `❌ Faux ! Regarde la correction.`;
+                }
+            }
+
+            if (currentMode === 'mode-evaluation') {
+                p.qCount++;
+                document.getElementById(`progress-${id}`).innerText = `Question ${p.qCount} / 10`;
+            } else if (currentMode === 'mode-entrainement') {
+                document.getElementById(`progress-${id}`).innerText = `Bonnes réponses : ${p.score}`;
+            }
+
+            let delayToNext = 3000;
+
+            if(currentMode === 'mode-evaluation') {
+                delayToNext = 5000; 
+                
+                if(p.qCount >= 10) {
+                    p.evalFinished = true;
+                    document.getElementById(`btn-val-${id}`).disabled = true;
+                    setTimeout(() => endEvaluation(id), delayToNext);
+                    return;
+                }
+            }
+            
+            setTimeout(() => startQuestion(id), delayToNext); 
+        }
+
+        function endEvaluation(id) {
+            const p = players.find(x => x.id === id);
+            const student = document.getElementById(`student-${id}`).value;
+            const feedback = document.getElementById(`feedback-${id}`);
+            
+            document.getElementById(`display-${id}`).innerText = "FINI";
+            document.getElementById(`input-${id}`).value = "";
+
+            if (!student) {
+                feedback.innerHTML = `<strong>Évaluation terminée !</strong><br>Score : ${p.score} / 10<br><small style="color: #ea580c;">⚠️ Prénom non renseigné.</small>`;
+            } else {
+                feedback.innerHTML = `<strong>${student}, c'est terminé !</strong><br>Score final : ${p.score} / 10`;
+            }
+            feedback.className = 'feedback-area correct';
+            
+            setTimeout(() => {
+                stopSession(id);
+            }, 4000);
+        }
+
+        window.onload = () => {
+            buildWorkspace();
+            resetAbacusOnly();
+        };
     </script>
 </body>
 </html>

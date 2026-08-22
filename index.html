@@ -473,6 +473,8 @@
             </div>
             
             <div class="segmented" id="range-config-container">
+                <!-- Nouveau bouton ajouté : < 10 -->
+                <button class="tool-btn range-btn" data-val="10" onclick="setRange(10, this)">&lt; 10</button>
                 <button class="tool-btn range-btn" data-val="20" onclick="setRange(20, this)">&lt; 20</button>
                 <button class="tool-btn range-btn" data-val="69" onclick="setRange(69, this)">&lt; 69</button>
                 <button class="tool-btn range-btn active" data-val="100" onclick="setRange(100, this)">&lt; 100</button>
@@ -741,13 +743,14 @@
             }},
             "1": { t: "Ajouter ou soustraire 1, 2, 3 ou 4", type: "normal", gen: () => { 
                 let v = Math.floor(Math.random() * 4) + 1;
-                let n = Math.floor(Math.random() * ((maxNumberLevel > 20 ? maxNumberLevel : 20) - v)) + v;
+                let max = Math.max(20, maxNumberLevel);
+                let n = Math.floor(Math.random() * (max - v)) + v;
                 let op = Math.random() > 0.5 ? '+' : '-';
                 if (op === '+' && n + v > maxNumberLevel) op = '-';
                 return { q: `${n} ${op} ${v} =`, r: op === '+' ? n + v : n - v, s: "Tu peux utiliser le boulier." };
             }},
             "2": { t: "S'appuyer sur 5 pour calculer", type: "normal", gen: () => { 
-                let a = Math.floor(Math.random() * 4) + 2; // 2 à 5
+                let a = Math.floor(Math.random() * 4) + 2; 
                 let b = Math.floor(Math.random() * 4) + 2; 
                 if(Math.random() > 0.5) {
                     return { q: `${a} + ${b} =`, r: a + b, s: "Pense au repère 5." };
@@ -777,32 +780,36 @@
             }},
             "7": { t: "Ajouter ou soustraire 10, ajouter 9", type: "normal", gen: () => { 
                 let type = Math.floor(Math.random() * 3);
-                let n = Math.floor(Math.random() * (maxNumberLevel - 15)) + 11; 
+                let max = Math.max(20, maxNumberLevel);
+                let n = Math.floor(Math.random() * (max - 15)) + 11; 
                 if(type === 0) return { q: `${n} + 10 =`, r: n + 10, s: "Ajoute une dizaine." };
                 if(type === 1) return { q: `${n} - 10 =`, r: n - 10, s: "Enlève une dizaine." };
                 return { q: `${n} + 9 =`, r: n + 9, s: "Ajoute 10 puis recule de 1." };
             }},
             "8": { t: "Compléments à D", type: "normal", gen: () => { 
+                let maxD = Math.max(20, maxNumberLevel);
                 let diz = (Math.floor(Math.random() * 8) + 2) * 10;
-                if (diz > maxNumberLevel) diz = Math.floor(maxNumberLevel/10)*10;
+                if (diz > maxD) diz = Math.floor(maxD/10)*10;
                 if (diz < 20) diz = 20;
                 let n = diz - (Math.floor(Math.random() * 9) + 1);
                 return { q: `${n} + ... = ${diz}`, r: diz - n, s: "Cherche l'ami de 10 des unités." };
             }},
             "9": { t: "+/- un nombre < 10", type: "normal", gen: () => { 
                 let val = Math.floor(Math.random() * 9) + 1;
-                let n = Math.floor(Math.random() * (maxNumberLevel - val - 10)) + 10;
+                let max = Math.max(20, maxNumberLevel);
+                let n = Math.floor(Math.random() * (max - val - 10)) + 10;
                 let op = Math.random() > 0.5 ? '+' : '-';
                 return { q: `${n} ${op} ${val} =`, r: op === '+' ? n + val : n - val, s: "Occupe-toi des unités." };
             }},
             "10": { t: "+/- des D entières", type: "normal", gen: () => { 
                 let d = (Math.floor(Math.random() * 4) + 1) * 10;
-                let n = Math.floor(Math.random() * (maxNumberLevel - d - 10)) + d;
+                let max = Math.max(40, maxNumberLevel);
+                let n = Math.floor(Math.random() * (max - d - 10)) + d;
                 let op = Math.random() > 0.5 ? '+' : '-';
                 return { q: `${n} ${op} ${d} =`, r: op === '+' ? n + d : n - d, s: "Occupe-toi seulement des dizaines." };
             }},
             "12": { t: "Ajouter deux nombres <100", type: "normal", gen: () => { 
-                let maxPart = maxNumberLevel / 2;
+                let maxPart = Math.max(20, maxNumberLevel) / 2;
                 let a = Math.floor(Math.random() * (maxPart - 5)) + 5;
                 let b = Math.floor(Math.random() * (maxPart - 5)) + 5;
                 return { q: `${a} + ${b} =`, r: a + b, s: "Ajoute les dizaines, puis les unités." };
@@ -819,7 +826,8 @@
                 return { q: `Moitié de ${n}`, r: n / 2, s: "Partage en deux parts égales." };
             }},
             "15": { t: "Soustraire U à D <100", type: "normal", gen: () => { 
-                let d = (Math.floor(Math.random() * (maxNumberLevel/10 - 2)) + 2) * 10;
+                let max = Math.max(40, maxNumberLevel);
+                let d = (Math.floor(Math.random() * (max/10 - 2)) + 2) * 10;
                 if (d < 20) d = 20;
                 let u = Math.floor(Math.random() * 9) + 1;
                 return { q: `${d} - ${u} =`, r: d - u, s: "Pense au complément à 10 et recule d'une dizaine." };

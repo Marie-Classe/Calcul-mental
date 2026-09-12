@@ -763,22 +763,69 @@
 
         let maxNumberLevel = 100; // Par défaut <100 pour CP
 
-        // Configuration des opérations actives pour la notion "1" (Ajouter/soustraire 1,2,3,4)
-        // Toutes actives par défaut.
-        let opsConfigNotion1 = {
-            1: { plus: true, minus: true },
-            2: { plus: true, minus: true },
-            3: { plus: true, minus: true },
-            4: { plus: true, minus: true }
-        };
+        // Configuration des opérations actives pour la notion "1" (Ajouter/soustraire 1 à 9)
+        // 1 à 4 actifs par défaut, 5 à 9 désactivés par défaut.
+        let opsConfigNotion1 = {};
+        for (let v = 1; v <= 9; v++) {
+            opsConfigNotion1[v] = { plus: v <= 4, minus: v <= 4 };
+        }
 
         function getActiveOpsNotion1() {
             const list = [];
-            for (let v = 1; v <= 4; v++) {
+            for (let v = 1; v <= 9; v++) {
                 if (opsConfigNotion1[v].plus) list.push({ v, op: '+' });
                 if (opsConfigNotion1[v].minus) list.push({ v, op: '-' });
             }
             return list;
+        }
+
+        // Configuration générique des options actives pour les autres notions à variantes.
+        let notionOptionsConfig = {
+            "7": { plus10: true, minus10: true, plus9: true },
+            "8": { proche: true, eloignee: true },
+            "10": { dd: true, dud: true },
+            "12": { sansRetenue: true, avecRetenue: true },
+            "P2": { x1: true, x2: true, x5: true, x10: true }
+        };
+
+        const notionOptionsDefs = {
+            "7": [
+                { id: 'plus10', label: '+10' },
+                { id: 'minus10', label: '-10' },
+                { id: 'plus9', label: '+9' }
+            ],
+            "8": [
+                { id: 'proche', label: 'Dizaine proche' },
+                { id: 'eloignee', label: 'Dizaine éloignée' }
+            ],
+            "10": [
+                { id: 'dd', label: 'D + D' },
+                { id: 'dud', label: 'DU + D' }
+            ],
+            "12": [
+                { id: 'sansRetenue', label: 'DU sans retenue' },
+                { id: 'avecRetenue', label: 'DU avec retenue' }
+            ],
+            "P2": [
+                { id: 'x1', label: 'x1' },
+                { id: 'x2', label: 'x2' },
+                { id: 'x5', label: 'x5' },
+                { id: 'x10', label: 'x10' }
+            ]
+        };
+
+        function toggleNotionOption(playerId, notionKey, optId) {
+            const cfg = notionOptionsConfig[notionKey];
+            const activeCount = Object.values(cfg).filter(v => v).length;
+            if (cfg[optId] && activeCount <= 1) return; // au moins une option doit rester active
+            cfg[optId] = !cfg[optId];
+            const btn = document.getElementById(`opt-${notionKey}-${optId}`);
+            if (btn) btn.classList.toggle('on', cfg[optId]);
+
+            const p = players.find(x => x.id === playerId);
+            if (p && p.currentProg === notionKey && !p.evalFinished) {
+                startQuestion(playerId);
+            }
         }
 
         const progressionData = {
@@ -841,7 +888,13 @@
                 }
             }},
             "7": { t: "Ajouter ou soustraire 10, ajouter 9", type: "normal", gen: () => { 
-                let type = Math.floor(Math.random() * 3);
+                const cfg = notionOptionsConfig["7"];
+                let types = [];
+                if (cfg.plus10) types.push(0);
+                if (cfg.minus10) types.push(1);
+                if (cfg.plus9) types.push(2);
+                if (types.length === 0) types = [0];
+                let type = types[Math.floor(Math.random() * types.length)];
                 let max = Math.max(20, maxNumberLevel);
                 let n = Math.floor(Math.random() * (max - 15)) + 11; 
                 if(type === 0) return { q: `${n} + 10 =`, r: n + 10, s: "Ajoute une dizaine." };
@@ -849,11 +902,20 @@
                 return { q: `${n} + 9 =`, r: n + 9, s: "Ajoute 10 puis recule de 1." };
             }},
             "8": { t: "Compléments à D", type: "normal", gen: () => { 
+                const cfg = notionOptionsConfig["8"];
                 let maxD = Math.max(20, maxNumberLevel);
                 let diz = (Math.floor(Math.random() * 8) + 2) * 10;
                 if (diz > maxD) diz = Math.floor(maxD/10)*10;
                 if (diz < 20) diz = 20;
-                let n = diz - (Math.floor(Math.random() * 9) + 1);
+
+                let missingMin, missingMax;
+                if (cfg.proche && cfg.eloignee) { missingMin = 1; missingMax = 9; }
+                else if (cfg.proche) { missingMin = 1; missingMax = 4; }
+                else if (cfg.eloignee) { missingMin = 5; missingMax = 9; }
+                else { missingMin = 1; missingMax = 9; }
+
+                let missing = missingMin + Math.floor(Math.random() * (missingMax - missingMin + 1));
+                let n = diz - missing;
                 return { q: `${n} + ... = ${diz}`, r: diz - n, s: "Cherche l'ami de 10 des unités." };
             }},
             "9": { t: "+/- un nombre < 10", type: "normal", gen: () => { 
@@ -864,16 +926,52 @@
                 return { q: `${n} ${op} ${val} =`, r: op === '+' ? n + val : n - val, s: "Occupe-toi des unités." };
             }},
             "10": { t: "+/- des D entières", type: "normal", gen: () => { 
+                const cfg = notionOptionsConfig["10"];
                 let d = (Math.floor(Math.random() * 4) + 1) * 10;
                 let max = Math.max(40, maxNumberLevel);
-                let n = Math.floor(Math.random() * (max - d - 10)) + d;
+
+                let variants = [];
+                if (cfg.dd) variants.push('dd');
+                if (cfg.dud) variants.push('dud');
+                if (variants.length === 0) variants = ['dud'];
+                let variant = variants[Math.floor(Math.random() * variants.length)];
+
+                let lower = d, upper = max - d - 1;
+                if (upper < lower) upper = lower;
+
+                let n;
+                if (variant === 'dd') {
+                    let lowerTens = Math.ceil(lower / 10);
+                    let upperTens = Math.floor(upper / 10);
+                    if (upperTens < lowerTens) upperTens = lowerTens;
+                    let nTens = lowerTens + Math.floor(Math.random() * (upperTens - lowerTens + 1));
+                    n = nTens * 10;
+                } else {
+                    n = lower + Math.floor(Math.random() * (upper - lower + 1));
+                }
+
                 let op = Math.random() > 0.5 ? '+' : '-';
                 return { q: `${n} ${op} ${d} =`, r: op === '+' ? n + d : n - d, s: "Occupe-toi seulement des dizaines." };
             }},
             "12": { t: "Ajouter deux nombres <100", type: "normal", gen: () => { 
+                const cfg = notionOptionsConfig["12"];
+                let variants = [];
+                if (cfg.sansRetenue) variants.push('none');
+                if (cfg.avecRetenue) variants.push('carry');
+                if (variants.length === 0) variants = ['none'];
+                let variant = variants[Math.floor(Math.random() * variants.length)];
+
                 let maxPart = Math.max(20, maxNumberLevel) / 2;
-                let a = Math.floor(Math.random() * (maxPart - 5)) + 5;
-                let b = Math.floor(Math.random() * (maxPart - 5)) + 5;
+                let a, b, attempts = 0;
+                do {
+                    a = Math.floor(Math.random() * (maxPart - 5)) + 5;
+                    b = Math.floor(Math.random() * (maxPart - 5)) + 5;
+                    attempts++;
+                    let unitsSum = (a % 10) + (b % 10);
+                    if (variant === 'carry' && unitsSum >= 10) break;
+                    if (variant === 'none' && unitsSum <= 9) break;
+                } while (attempts < 30);
+
                 return { q: `${a} + ${b} =`, r: a + b, s: "Ajoute les dizaines, puis les unités." };
             }},
             "13": { t: "Moitiés de 2 à 20, ou dizaines", type: "normal", gen: () => { 
@@ -895,7 +993,13 @@
                 return { q: `${d} - ${u} =`, r: d - u, s: "Pense au complément à 10 et recule d'une dizaine." };
             }},
             "P2": { t: "Table de 1, 2, 5, 10", type: "normal", gen: () => { 
-                let tables = [1, 2, 5, 10];
+                const cfg = notionOptionsConfig["P2"];
+                let tables = [];
+                if (cfg.x1) tables.push(1);
+                if (cfg.x2) tables.push(2);
+                if (cfg.x5) tables.push(5);
+                if (cfg.x10) tables.push(10);
+                if (tables.length === 0) tables = [1];
                 let a = tables[Math.floor(Math.random() * tables.length)];
                 let b = Math.floor(Math.random() * 10) + 1;
                 if (Math.random() > 0.5) return { q: `${a} × ${b} =`, r: a * b, s: "Récite tes tables." };
@@ -955,11 +1059,20 @@
                 gridHTML += `<button class="prog-btn" onclick="selectProgression(1, '${key}')" title="${progressionData[key].t}"><b>${key}</b> ${progressionData[key].t}</button>`;
             }
 
-            let opsToggleHTML = '';
-            [1, 2, 3, 4].forEach(v => {
-                opsToggleHTML += `<button type="button" class="op-toggle-btn on" id="op-1-${v}-plus" onclick="toggleOp(1, ${v}, 'plus')">+${v}</button>`;
-                opsToggleHTML += `<button type="button" class="op-toggle-btn on" id="op-1-${v}-minus" onclick="toggleOp(1, ${v}, 'minus')">-${v}</button>`;
-            });
+            let notion1ToggleHTML = '';
+            for (let v = 1; v <= 9; v++) {
+                notion1ToggleHTML += `<button type="button" class="op-toggle-btn ${opsConfigNotion1[v].plus ? 'on' : ''}" id="op-1-${v}-plus" onclick="toggleOp(1, ${v}, 'plus')">+${v}</button>`;
+                notion1ToggleHTML += `<button type="button" class="op-toggle-btn ${opsConfigNotion1[v].minus ? 'on' : ''}" id="op-1-${v}-minus" onclick="toggleOp(1, ${v}, 'minus')">-${v}</button>`;
+            }
+
+            let opsToggleHTML = `<div class="ops-toggle-container" data-key="1">${notion1ToggleHTML}</div>`;
+            for (let key in notionOptionsDefs) {
+                let inner = '';
+                notionOptionsDefs[key].forEach(opt => {
+                    inner += `<button type="button" class="op-toggle-btn ${notionOptionsConfig[key][opt.id] ? 'on' : ''}" id="opt-${key}-${opt.id}" onclick="toggleNotionOption(1, '${key}', '${opt.id}')">${opt.label}</button>`;
+                });
+                opsToggleHTML += `<div class="ops-toggle-container" data-key="${key}">${inner}</div>`;
+            }
 
             const card = document.createElement('div');
             card.className = 'player-card';
@@ -978,7 +1091,7 @@
                 
                 <div id="prog-grid-1" class="prog-grid">${gridHTML}</div>
 
-                <div id="ops-toggle-1" class="ops-toggle-container">${opsToggleHTML}</div>
+                <div id="ops-toggles-1">${opsToggleHTML}</div>
 
                 <div id="exercise-container-1" class="exercise-container">
                     <div id="progress-1" class="progress-indicator">Bonnes réponses : 0</div>
@@ -1065,8 +1178,12 @@
             document.getElementById(`btn-choose-${id}`).innerText = `Notion : ${key} - ${progressionData[key].t}`;
             document.getElementById(`exercise-container-${id}`).style.display = 'block';
 
-            const opsContainer = document.getElementById(`ops-toggle-${id}`);
-            if (opsContainer) opsContainer.classList.toggle('visible', key === '1');
+            const opsHolder = document.getElementById(`ops-toggles-${id}`);
+            if (opsHolder) {
+                opsHolder.querySelectorAll('.ops-toggle-container').forEach(el => {
+                    el.classList.toggle('visible', el.dataset.key === key);
+                });
+            }
 
             resetSession(id);
         }
@@ -1082,8 +1199,10 @@
             document.getElementById(`prog-grid-${id}`).style.display = 'grid';
             document.getElementById(`btn-choose-${id}`).innerText = "Choisir une notion CP";
             document.getElementById(`feedback-${id}`).innerHTML = "";
-            const opsContainer = document.getElementById(`ops-toggle-${id}`);
-            if (opsContainer) opsContainer.classList.remove('visible');
+            const opsHolder = document.getElementById(`ops-toggles-${id}`);
+            if (opsHolder) {
+                opsHolder.querySelectorAll('.ops-toggle-container').forEach(el => el.classList.remove('visible'));
+            }
             p.currentProg = null;
         }
 

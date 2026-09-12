@@ -320,6 +320,37 @@
         
         .exercise-container { display: none; }
 
+        /* Boutons de sélection des opérations (notion 1 : +/- 1,2,3,4) */
+        .ops-toggle-container {
+            display: none;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 8px;
+        }
+        .ops-toggle-container.visible { display: flex; }
+
+        .op-toggle-btn {
+            border: 2px solid #cbd5e1;
+            background: #f1f5f9;
+            color: #94a3b8;
+            font-weight: 900;
+            font-size: 1rem;
+            border-radius: 8px;
+            padding: 6px 10px;
+            cursor: pointer;
+            min-width: 44px;
+            transition: all 0.15s;
+        }
+        .op-toggle-btn.on {
+            background: var(--current-mode);
+            border-color: var(--current-mode);
+            color: white;
+        }
+
         /* Colonne Droite : Le Boulier CP Agrandi (125%) à 3 Colonnes */
         .abacus-card {
             background: var(--card-bg);
@@ -732,6 +763,24 @@
 
         let maxNumberLevel = 100; // Par défaut <100 pour CP
 
+        // Configuration des opérations actives pour la notion "1" (Ajouter/soustraire 1,2,3,4)
+        // Toutes actives par défaut.
+        let opsConfigNotion1 = {
+            1: { plus: true, minus: true },
+            2: { plus: true, minus: true },
+            3: { plus: true, minus: true },
+            4: { plus: true, minus: true }
+        };
+
+        function getActiveOpsNotion1() {
+            const list = [];
+            for (let v = 1; v <= 4; v++) {
+                if (opsConfigNotion1[v].plus) list.push({ v, op: '+' });
+                if (opsConfigNotion1[v].minus) list.push({ v, op: '-' });
+            }
+            return list;
+        }
+
         const progressionData = {
             "P0": { t: "Inscrire un nombre", type: "write_abacus", gen: () => { 
                 let n = Math.floor(Math.random() * (maxNumberLevel - 1)) + 1; 
@@ -742,11 +791,24 @@
                 return { q: "Écris le nombre affiché :", r: n, s: "Observe les billes et tape le nombre."}; 
             }},
             "1": { t: "Ajouter ou soustraire 1, 2, 3 ou 4", type: "normal", gen: () => { 
-                let v = Math.floor(Math.random() * 4) + 1;
-                let max = Math.max(20, maxNumberLevel);
-                let n = Math.floor(Math.random() * (max - v)) + v;
-                let op = Math.random() > 0.5 ? '+' : '-';
-                if (op === '+' && n + v > maxNumberLevel) op = '-';
+                let active = getActiveOpsNotion1();
+                if (active.length === 0) active = [{ v: 1, op: '+' }];
+                let choice = active[Math.floor(Math.random() * active.length)];
+                let v = choice.v;
+                let op = choice.op;
+
+                // Les termes de l'opération restent strictement dans la plage choisie (< maxNumberLevel)
+                let max = maxNumberLevel;
+                let n;
+                if (op === '+') {
+                    // n + v doit rester < max
+                    let low = v, high = max - v - 1;
+                    if (high < low) high = low;
+                    n = low + Math.floor(Math.random() * (high - low + 1));
+                } else {
+                    // n - v : n doit être >= v et < max
+                    n = v + Math.floor(Math.random() * (max - v));
+                }
                 return { q: `${n} ${op} ${v} =`, r: op === '+' ? n + v : n - v, s: "Tu peux utiliser le boulier." };
             }},
             "2": { t: "S'appuyer sur 5 pour calculer", type: "normal", gen: () => { 
@@ -893,6 +955,12 @@
                 gridHTML += `<button class="prog-btn" onclick="selectProgression(1, '${key}')" title="${progressionData[key].t}"><b>${key}</b> ${progressionData[key].t}</button>`;
             }
 
+            let opsToggleHTML = '';
+            [1, 2, 3, 4].forEach(v => {
+                opsToggleHTML += `<button type="button" class="op-toggle-btn on" id="op-1-${v}-plus" onclick="toggleOp(1, ${v}, 'plus')">+${v}</button>`;
+                opsToggleHTML += `<button type="button" class="op-toggle-btn on" id="op-1-${v}-minus" onclick="toggleOp(1, ${v}, 'minus')">-${v}</button>`;
+            });
+
             const card = document.createElement('div');
             card.className = 'player-card';
             card.innerHTML = `
@@ -909,6 +977,8 @@
                 <button id="btn-choose-1" class="btn-choose-prog" onclick="toggleProgGrid(1)">Choisir une notion CP</button>
                 
                 <div id="prog-grid-1" class="prog-grid">${gridHTML}</div>
+
+                <div id="ops-toggle-1" class="ops-toggle-container">${opsToggleHTML}</div>
 
                 <div id="exercise-container-1" class="exercise-container">
                     <div id="progress-1" class="progress-indicator">Bonnes réponses : 0</div>
@@ -938,6 +1008,22 @@
                 <div id="feedback-1" class="feedback-area"></div>
             `;
             ws.appendChild(card);
+        }
+
+        function toggleOp(playerId, v, sign) {
+            const wasOn = opsConfigNotion1[v][sign];
+            // Empêche de désactiver la dernière opération active
+            const active = getActiveOpsNotion1();
+            if (wasOn && active.length <= 1) return;
+
+            opsConfigNotion1[v][sign] = !wasOn;
+            const btn = document.getElementById(`op-${playerId}-${v}-${sign}`);
+            if (btn) btn.classList.toggle('on', opsConfigNotion1[v][sign]);
+
+            const p = players.find(x => x.id === playerId);
+            if (p && p.currentProg === '1' && !p.evalFinished) {
+                startQuestion(playerId);
+            }
         }
 
         document.addEventListener('keydown', (event) => {
@@ -978,6 +1064,10 @@
             document.getElementById(`prog-grid-${id}`).style.display = 'none';
             document.getElementById(`btn-choose-${id}`).innerText = `Notion : ${key} - ${progressionData[key].t}`;
             document.getElementById(`exercise-container-${id}`).style.display = 'block';
+
+            const opsContainer = document.getElementById(`ops-toggle-${id}`);
+            if (opsContainer) opsContainer.classList.toggle('visible', key === '1');
+
             resetSession(id);
         }
 
@@ -992,6 +1082,8 @@
             document.getElementById(`prog-grid-${id}`).style.display = 'grid';
             document.getElementById(`btn-choose-${id}`).innerText = "Choisir une notion CP";
             document.getElementById(`feedback-${id}`).innerHTML = "";
+            const opsContainer = document.getElementById(`ops-toggle-${id}`);
+            if (opsContainer) opsContainer.classList.remove('visible');
             p.currentProg = null;
         }
 

@@ -1459,14 +1459,11 @@
                 feedback.innerHTML = `${verdict}<br>${correction}`;
             }
 
-            // Pour les deux exercices liés au boulier, on affiche (ou on confirme) le bon nombre
-            // dessus, bien visible pour toute la classe, et on verrouille les billes le temps
-            // de la correction.
-            if (q.type === "write_abacus" || q.type === "read_abacus") {
-                injectValueToAbacus(q.r);
-                document.getElementById('abacus-total-display').style.visibility = 'visible';
-                abacusInteractionLocked = true;
-            }
+            // Pour toutes les notions, on affiche (ou on confirme) le bon nombre sur le boulier,
+            // bien visible pour toute la classe, et on verrouille les billes le temps de la correction.
+            injectValueToAbacus(q.r);
+            document.getElementById('abacus-total-display').style.visibility = 'visible';
+            abacusInteractionLocked = true;
 
             if (currentMode === 'mode-evaluation') {
                 p.qCount++;

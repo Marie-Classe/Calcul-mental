@@ -858,6 +858,7 @@
 
         // Configuration générique des options actives pour les autres notions à variantes.
         let notionOptionsConfig = {
+            "5": { cible5: true, cible10: true, cible20: true, D: true, C: true },
             "7": { plus10: true, minus10: true, plus9: true },
             "8": { proche: true, eloignee: true },
             "10": { dd: true, dud: true },
@@ -866,6 +867,13 @@
         };
 
         const notionOptionsDefs = {
+            "5": [
+                { id: 'cible5', label: 'à 5' },
+                { id: 'cible10', label: 'à 10' },
+                { id: 'cible20', label: 'à 20' },
+                { id: 'D', label: 'à D' },
+                { id: 'C', label: 'à C' }
+            ],
             "7": [
                 { id: 'plus10', label: '+10' },
                 { id: 'minus10', label: '-10' },
@@ -901,6 +909,20 @@
 
             const p = players.find(x => x.id === playerId);
             if (p && p.currentProg === notionKey && !p.evalFinished) {
+                startQuestion(playerId);
+            }
+        }
+
+        // Option indépendante (pas un choix exclusif) : pour "à D" et "à C", démarrer
+        // sur une dizaine ou centaine ronde (ex : 40 + ... = 100) plutôt que sur un nombre quelconque.
+        let complementRoundStart = false;
+        function toggleComplementRoundStart(playerId) {
+            complementRoundStart = !complementRoundStart;
+            const btn = document.getElementById('opt-5-round');
+            if (btn) btn.classList.toggle('on', complementRoundStart);
+
+            const p = players.find(x => x.id === playerId);
+            if (p && p.currentProg === '5' && !p.evalFinished) {
                 startQuestion(playerId);
             }
         }
@@ -945,9 +967,59 @@
                     return { q: `${sum} - ${a} =`, r: b, s: "Sépare par rapport à 5." };
                 }
             }},
-            "5": { t: "Compléments à 10", type: "normal", gen: () => { 
-                let n = Math.floor(Math.random() * 9) + 1;
-                return { q: `${n} + ... = 10`, r: 10 - n, s: "Connais-tu tes amis de 10 ?" };
+            "5": { t: "Complément à 5, 10, 20, D ou C sup.", type: "normal", gen: () => { 
+                const cfg = notionOptionsConfig["5"];
+                let variants = [];
+                if (cfg.cible5) variants.push('5');
+                if (cfg.cible10) variants.push('10');
+                if (cfg.cible20) variants.push('20');
+                if (cfg.D) variants.push('D');
+                if (cfg.C) variants.push('C');
+                if (variants.length === 0) variants = ['10'];
+                let variant = variants[Math.floor(Math.random() * variants.length)];
+
+                if (variant === '5') {
+                    // Complément à 5 (amis de 5)
+                    let n = Math.floor(Math.random() * 4) + 1;
+                    return { q: `${n} + ... = 5`, r: 5 - n, s: "Connais-tu tes amis de 5 ?" };
+                }
+                if (variant === '10') {
+                    // Complément à 10 (amis de 10)
+                    let n = Math.floor(Math.random() * 9) + 1;
+                    return { q: `${n} + ... = 10`, r: 10 - n, s: "Connais-tu tes amis de 10 ?" };
+                }
+                if (variant === '20') {
+                    // Complément à 20
+                    let n = Math.floor(Math.random() * 9) + 11;
+                    return { q: `${n} + ... = 20`, r: 20 - n, s: "Appuie-toi sur les amis de 10." };
+                }
+                if (variant === 'D') {
+                    // Complément à la dizaine supérieure (ex : 34 + ... = 40 ; avec Départ rond : 40 + ... = 50)
+                    let max = Math.max(20, maxNumberLevel);
+                    let n;
+                    if (complementRoundStart) {
+                        let maxTens = Math.max(1, Math.floor((max - 10) / 10));
+                        n = (Math.floor(Math.random() * maxTens) + 1) * 10;
+                    } else {
+                        do { n = Math.floor(Math.random() * (max - 1)) + 1; } while (n % 10 === 0);
+                    }
+                    let target = Math.ceil(n / 10) * 10;
+                    if (target === n) target += 10;
+                    return { q: `${n} + ... = ${target}`, r: target - n, s: "Cherche d'abord la dizaine juste au-dessus." };
+                }
+                // variant === 'C' : complément à la centaine supérieure
+                // (ex : 340 + ... = 400 ; avec Départ rond : 40 + ... = 100)
+                let max = Math.max(300, maxNumberLevel * 3);
+                let n;
+                if (complementRoundStart) {
+                    let maxTens = Math.max(1, Math.floor((max - 10) / 10));
+                    do { n = (Math.floor(Math.random() * maxTens) + 1) * 10; } while (n % 100 === 0);
+                } else {
+                    do { n = Math.floor(Math.random() * (max - 101)) + 101; } while (n % 100 === 0);
+                }
+                let target = Math.ceil(n / 100) * 100;
+                if (target === n) target += 100;
+                return { q: `${n} + ... = ${target}`, r: target - n, s: "Cherche d'abord la centaine juste au-dessus." };
             }},
             "6": { t: "Doubles, presque doubles", type: "normal", gen: () => { 
                 let type = Math.floor(Math.random() * 3);
@@ -1154,6 +1226,9 @@
                 notionOptionsDefs[key].forEach(opt => {
                     inner += `<button type="button" class="op-toggle-btn ${notionOptionsConfig[key][opt.id] ? 'on' : ''}" id="opt-${key}-${opt.id}" onclick="toggleNotionOption(1, '${key}', '${opt.id}')">${opt.label}</button>`;
                 });
+                if (key === '5') {
+                    inner += `<button type="button" class="op-toggle-btn ${complementRoundStart ? 'on' : ''}" id="opt-5-round" onclick="toggleComplementRoundStart(1)" title="Départ sur une dizaine ou centaine ronde, ex. 40 + ... = 100">Départ rond</button>`;
+                }
                 opsToggleHTML += `<div class="ops-toggle-container" data-key="${key}">${inner}</div>`;
             }
 
@@ -1385,15 +1460,35 @@
                 badge.innerText = `${timeLeft}s`;
                 if(timeLeft <= 0) {
                     clearInterval(p.timer);
-                    // Pour "Inscrire un nombre", on lit ce qui est réellement affiché sur le boulier,
-                    // même si le temps est écoulé avant d'avoir appuyé sur Entrée.
-                    const val = (p.currentQ && p.currentQ.type === 'write_abacus') ? getAbacusTotal() : null;
-                    revealAnswer(id, val);
+                    // Même logique de lecture qu'un appui manuel : pavé numérique, sinon boulier, sinon rien.
+                    revealAnswer(id, readCurrentAnswer(id), 'timeout');
                 }
             }, 1000);
         }
 
+        // Lit la réponse actuellement proposée : le pavé numérique a priorité, sinon le boulier
+        // (sauf pour "Lire sur le boulier", où le boulier affiche la question, pas la réponse),
+        // sinon il n'y a pas de réponse (null).
+        function readCurrentAnswer(id) {
+            const p = players.find(x => x.id === id);
+            if (!p || !p.currentQ) return null;
+
+            if (p.currentQ.type !== 'write_abacus') {
+                const input = document.getElementById(`input-${id}`);
+                if (input && input.value !== '' && !input.disabled) {
+                    return parseInt(input.value);
+                }
+            }
+            if (p.currentQ.type !== 'read_abacus') {
+                const abacusVal = getAbacusTotal();
+                if (abacusVal !== 0) return abacusVal;
+            }
+            return null;
+        }
+
         // 1er appui sur Entrée (ou ✔) : valide et affiche la correction, sans enchaîner.
+        // Le boulier compte comme réponse (pour toutes les notions), et un appui sans rien
+        // avoir saisi ni posé déclenche quand même la correction (comme un temps écoulé).
         // 2e appui : passe à la question suivante (ou termine l'évaluation après la 10e).
         function validate(id) {
             const p = players.find(x => x.id === id);
@@ -1410,20 +1505,10 @@
                 return;
             }
 
-            let userVal;
-            if (p.currentQ.type === "write_abacus") {
-                userVal = getAbacusTotal(); 
-                // Boulier vide : on ne valide pas (évite une validation par erreur, par ex. double appui)
-                if (userVal === 0) return;
-            } else {
-                const input = document.getElementById(`input-${id}`);
-                if(input.value === '' || input.disabled) return;
-                userVal = parseInt(input.value);
-            }
-            revealAnswer(id, userVal);
+            revealAnswer(id, readCurrentAnswer(id), 'manual');
         }
 
-        function revealAnswer(id, userVal) {
+        function revealAnswer(id, userVal, reason) {
             const p = players.find(x => x.id === id);
             if(!p.currentQ || p.evalFinished || p.awaitingNext) return;
             
@@ -1436,9 +1521,13 @@
             let correction;
             if (q.type === "write_abacus") {
                 // On lit aussi ce que l'élève a réellement placé sur le boulier.
-                correction = (userVal === q.r)
-                    ? `Tu as affiché ${big(userVal)}`
-                    : `Tu as affiché ${userVal} — il fallait ${big(q.r)}`;
+                if (userVal === null) {
+                    correction = `Il fallait afficher ${big(q.r)}`;
+                } else if (userVal === q.r) {
+                    correction = `Tu as affiché ${big(userVal)}`;
+                } else {
+                    correction = `Tu as affiché ${userVal} — il fallait ${big(q.r)}`;
+                }
             } else if (q.type === "read_abacus") {
                 correction = `C'était ${big(q.r)}`;
             } else if (q.q.includes('...')) {
@@ -1455,7 +1544,8 @@
                 feedback.innerHTML = `✅ Exact !<br>${correction}`;
             } else {
                 feedback.className = 'feedback-area incorrect';
-                const verdict = (userVal === null) ? '❌ Temps écoulé !' : '❌ Faux !';
+                let verdict = '❌ Faux !';
+                if (userVal === null) verdict = (reason === 'timeout') ? '❌ Temps écoulé !' : '❌ Pas de réponse !';
                 feedback.innerHTML = `${verdict}<br>${correction}`;
             }
 

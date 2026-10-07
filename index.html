@@ -203,12 +203,12 @@
         .exercise-display {
             background: var(--box-bg);
             border-radius: 12px;
-            font-size: 1.8rem;
+            font-size: 2.6rem;
             text-align: center;
             font-weight: 900;
-            padding: 10px;
+            padding: 14px 10px;
             color: #0f172a;
-            min-height: 80px;
+            min-height: 100px;
             display: flex;
             flex-direction: column; 
             align-items: center;
@@ -220,7 +220,7 @@
         /* Nombre agrandi, pour qu'on le lise de loin au tableau */
         .answer-number {
             display: inline-block;
-            font-size: 1.9em;
+            font-size: 1.4em;
             font-weight: 900;
             letter-spacing: 0;
             margin: 2px 6px;
@@ -840,7 +840,7 @@
 
         let maxNumberLevel = 100; // Par défaut <100 pour CP
 
-        // Configuration des opérations actives pour la notion "1" (Ajouter/soustraire 1 à 9)
+        // Configuration des opérations actives pour la notion "5" (Construire les tables d'addition : +/- 1 à 9)
         // 1 à 4 actifs par défaut, 5 à 9 désactivés par défaut.
         let opsConfigNotion1 = {};
         for (let v = 1; v <= 9; v++) {
@@ -856,18 +856,31 @@
             return list;
         }
 
-        // Configuration générique des options actives pour les autres notions à variantes.
+        // Un calcul n op v, avec v fixe (±1, ±5, ±4...), dans la plage en cours. Réutilisé
+        // par les notions 1, 2 et 3.
+        function genAddSubFixed(v) {
+            let max = maxNumberLevel;
+            let op = Math.random() > 0.5 ? '+' : '-';
+            let n;
+            if (op === '+') {
+                let low = v, high = max - v - 1;
+                if (high < low) high = low;
+                n = low + Math.floor(Math.random() * (high - low + 1));
+            } else {
+                n = v + Math.floor(Math.random() * (max - v));
+            }
+            return { q: `${n} ${op} ${v} =`, r: op === '+' ? n + v : n - v, s: "Utilise le boulier si besoin." };
+        }
+
+        // Configuration générique des options actives pour les notions à variantes.
         let notionOptionsConfig = {
-            "5": { cible5: true, cible10: true, cible20: true, D: true, C: true },
+            "4": { cible5: true, cible10: true, cible20: true, D: true, C: true },
             "7": { plus10: true, minus10: true, plus9: true },
-            "8": { proche: true, eloignee: true },
-            "10": { dd: true, dud: true },
-            "12": { sansRetenue: true, avecRetenue: true },
-            "P2": { x1: true, x2: true, x5: true, x10: true }
+            "9": { x1: true, x2: true, x5: true, x10: true }
         };
 
         const notionOptionsDefs = {
-            "5": [
+            "4": [
                 { id: 'cible5', label: 'à 5' },
                 { id: 'cible10', label: 'à 10' },
                 { id: 'cible20', label: 'à 20' },
@@ -879,19 +892,7 @@
                 { id: 'minus10', label: '-10' },
                 { id: 'plus9', label: '+9' }
             ],
-            "8": [
-                { id: 'proche', label: 'Dizaine proche' },
-                { id: 'eloignee', label: 'Dizaine éloignée' }
-            ],
-            "10": [
-                { id: 'dd', label: 'D + D' },
-                { id: 'dud', label: 'DU + D' }
-            ],
-            "12": [
-                { id: 'sansRetenue', label: 'DU sans retenue' },
-                { id: 'avecRetenue', label: 'DU avec retenue' }
-            ],
-            "P2": [
+            "9": [
                 { id: 'x1', label: 'x1' },
                 { id: 'x2', label: 'x2' },
                 { id: 'x5', label: 'x5' },
@@ -918,57 +919,66 @@
         let complementRoundStart = false;
         function toggleComplementRoundStart(playerId) {
             complementRoundStart = !complementRoundStart;
-            const btn = document.getElementById('opt-5-round');
+            const btn = document.getElementById('opt-4-round');
             if (btn) btn.classList.toggle('on', complementRoundStart);
 
             const p = players.find(x => x.id === playerId);
-            if (p && p.currentProg === '5' && !p.evalFinished) {
+            if (p && p.currentProg === '4' && !p.evalFinished) {
+                startQuestion(playerId);
+            }
+        }
+
+        // Notion 6 (Doubles et moitiés) : deux groupes de boutons indépendants — le type de
+        // calcul, et la plage des nombres — chacun avec sa propre règle "au moins une active".
+        let doublesConfig = { doubles: true, presque: true, moities: true, r10: true, r20: true, r100: true };
+        const doublesTypeKeys = ['doubles', 'presque', 'moities'];
+        const doublesRangeKeys = ['r10', 'r20', 'r100'];
+        function toggleDoublesOption(playerId, optId) {
+            const group = doublesTypeKeys.includes(optId) ? doublesTypeKeys : doublesRangeKeys;
+            const activeInGroup = group.filter(k => doublesConfig[k]).length;
+            if (doublesConfig[optId] && activeInGroup <= 1) return;
+            doublesConfig[optId] = !doublesConfig[optId];
+            const btn = document.getElementById(`opt-6-${optId}`);
+            if (btn) btn.classList.toggle('on', doublesConfig[optId]);
+
+            const p = players.find(x => x.id === playerId);
+            if (p && p.currentProg === '6' && !p.evalFinished) {
+                startQuestion(playerId);
+            }
+        }
+
+        // Notion 8 (Ajouter / soustraire D) : deux groupes indépendants — l'opération, et le
+        // type de calcul — même règle "au moins une active" par groupe.
+        let notion8Config = { add: true, sub: true, D: true, sansP: true, avecP: true };
+        const notion8OpKeys = ['add', 'sub'];
+        const notion8TypeKeys = ['D', 'sansP', 'avecP'];
+        function toggleNotion8Option(playerId, optId) {
+            const group = notion8OpKeys.includes(optId) ? notion8OpKeys : notion8TypeKeys;
+            const activeInGroup = group.filter(k => notion8Config[k]).length;
+            if (notion8Config[optId] && activeInGroup <= 1) return;
+            notion8Config[optId] = !notion8Config[optId];
+            const btn = document.getElementById(`opt-8-${optId}`);
+            if (btn) btn.classList.toggle('on', notion8Config[optId]);
+
+            const p = players.find(x => x.id === playerId);
+            if (p && p.currentProg === '8' && !p.evalFinished) {
                 startQuestion(playerId);
             }
         }
 
         const progressionData = {
-            "P0": { t: "Inscrire un nombre", type: "write_abacus", gen: () => { 
+            "0": { t: "Lire / Inscrire un nombre sur le boulier", type: null, gen: () => { 
                 let n = Math.floor(Math.random() * (maxNumberLevel - 1)) + 1; 
-                return { q: `Affiche <span class="answer-number">${n}</span> sur le boulier`, r: n, s: "Place les billes et appuie sur Entrée (ou ✔)."}; 
-            }},
-            "P1": { t: "Lire un nombre", type: "read_abacus", gen: () => { 
-                let n = Math.floor(Math.random() * (maxNumberLevel - 1)) + 1; 
-                return { q: "Écris le nombre affiché :", r: n, s: "Observe les billes et tape le nombre."}; 
-            }},
-            "1": { t: "Ajouter ou soustraire 1, 2, 3 ou 4", type: "normal", gen: () => { 
-                let active = getActiveOpsNotion1();
-                if (active.length === 0) active = [{ v: 1, op: '+' }];
-                let choice = active[Math.floor(Math.random() * active.length)];
-                let v = choice.v;
-                let op = choice.op;
-
-                // Les termes de l'opération restent strictement dans la plage choisie (< maxNumberLevel)
-                let max = maxNumberLevel;
-                let n;
-                if (op === '+') {
-                    // n + v doit rester < max
-                    let low = v, high = max - v - 1;
-                    if (high < low) high = low;
-                    n = low + Math.floor(Math.random() * (high - low + 1));
-                } else {
-                    // n - v : n doit être >= v et < max
-                    n = v + Math.floor(Math.random() * (max - v));
+                if (Math.random() < 0.5) {
+                    return { type: 'write_abacus', q: `Affiche <span class="answer-number">${n}</span> sur le boulier`, r: n, s: "Place les billes, puis Entrée." };
                 }
-                return { q: `${n} ${op} ${v} =`, r: op === '+' ? n + v : n - v, s: "Tu peux utiliser le boulier." };
+                return { type: 'read_abacus', q: "Écris le nombre affiché :", r: n, s: "Observe les billes." };
             }},
-            "2": { t: "S'appuyer sur 5 pour calculer", type: "normal", gen: () => { 
-                let a = Math.floor(Math.random() * 4) + 2; 
-                let b = Math.floor(Math.random() * 4) + 2; 
-                if(Math.random() > 0.5) {
-                    return { q: `${a} + ${b} =`, r: a + b, s: "Pense au repère 5." };
-                } else {
-                    let sum = a + b;
-                    return { q: `${sum} - ${a} =`, r: b, s: "Sépare par rapport à 5." };
-                }
-            }},
-            "5": { t: "Complément à 5, 10, 20, D ou C sup.", type: "normal", gen: () => { 
-                const cfg = notionOptionsConfig["5"];
+            "1": { t: "Ajouter ou soustraire 1", type: "normal", gen: () => genAddSubFixed(1) },
+            "2": { t: "Ajouter ou soustraire 5", type: "normal", gen: () => genAddSubFixed(5) },
+            "3": { t: "Ajouter ou soustraire 4", type: "normal", gen: () => genAddSubFixed(4) },
+            "4": { t: "Compléments à 10, à 100", type: "normal", gen: () => { 
+                const cfg = notionOptionsConfig["4"];
                 let variants = [];
                 if (cfg.cible5) variants.push('5');
                 if (cfg.cible10) variants.push('10');
@@ -979,17 +989,14 @@
                 let variant = variants[Math.floor(Math.random() * variants.length)];
 
                 if (variant === '5') {
-                    // Complément à 5 (amis de 5)
                     let n = Math.floor(Math.random() * 4) + 1;
-                    return { q: `${n} + ... = 5`, r: 5 - n, s: "Connais-tu tes amis de 5 ?" };
+                    return { q: `${n} + ... = 5`, r: 5 - n, s: "Les amis de 5." };
                 }
                 if (variant === '10') {
-                    // Complément à 10 (amis de 10)
                     let n = Math.floor(Math.random() * 9) + 1;
-                    return { q: `${n} + ... = 10`, r: 10 - n, s: "Connais-tu tes amis de 10 ?" };
+                    return { q: `${n} + ... = 10`, r: 10 - n, s: "Les amis de 10." };
                 }
                 if (variant === '20') {
-                    // Complément à 20
                     let n = Math.floor(Math.random() * 9) + 11;
                     return { q: `${n} + ... = 20`, r: 20 - n, s: "Appuie-toi sur les amis de 10." };
                 }
@@ -1005,10 +1012,10 @@
                     }
                     let target = Math.ceil(n / 10) * 10;
                     if (target === n) target += 10;
-                    return { q: `${n} + ... = ${target}`, r: target - n, s: "Cherche d'abord la dizaine juste au-dessus." };
+                    return { q: `${n} + ... = ${target}`, r: target - n, s: "La dizaine juste au-dessus." };
                 }
                 // variant === 'C' : complément à la centaine supérieure
-                // (ex : 340 + ... = 400 ; avec Départ rond : 40 + ... = 100)
+                // (ex : 340 + ... = 400 ; avec Départ rond : 60 + ... = 100)
                 let max = Math.max(300, maxNumberLevel * 3);
                 let n;
                 if (complementRoundStart) {
@@ -1019,24 +1026,58 @@
                 }
                 let target = Math.ceil(n / 100) * 100;
                 if (target === n) target += 100;
-                return { q: `${n} + ... = ${target}`, r: target - n, s: "Cherche d'abord la centaine juste au-dessus." };
+                return { q: `${n} + ... = ${target}`, r: target - n, s: "La centaine juste au-dessus." };
             }},
-            "6": { t: "Doubles, presque doubles", type: "normal", gen: () => { 
-                let type = Math.floor(Math.random() * 3);
-                if(type === 0) { 
-                    let n = Math.floor(Math.random() * 10) + 1;
-                    return { q: `Double de ${n}`, r: n * 2, s: `Calcule ${n} + ${n}.` };
-                } else if (type === 1) { 
-                    let n = (Math.floor(Math.random() * 5) + 1) * 10;
-                    return { q: `Double de ${n}`, r: n * 2, s: `Pense au double de ${n/10} et ajoute un zéro.` };
-                } else { 
-                    let n = Math.floor(Math.random() * 9) + 1;
-                    let b = n + (Math.random() > 0.5 ? 1 : -1);
-                    if (b <= 0) b = 2;
-                    return { q: `${n} + ${b} =`, r: n + b, s: `Utilise le double de ${Math.min(n, b)} et ajoute 1.` };
+            "5": { t: "Construire les tables d'addition", type: "normal", gen: () => { 
+                let active = getActiveOpsNotion1();
+                if (active.length === 0) active = [{ v: 1, op: '+' }];
+                let choice = active[Math.floor(Math.random() * active.length)];
+                let v = choice.v;
+                let op = choice.op;
+
+                let max = maxNumberLevel;
+                let n;
+                if (op === '+') {
+                    let low = v, high = max - v - 1;
+                    if (high < low) high = low;
+                    n = low + Math.floor(Math.random() * (high - low + 1));
+                } else {
+                    n = v + Math.floor(Math.random() * (max - v));
                 }
+                return { q: `${n} ${op} ${v} =`, r: op === '+' ? n + v : n - v, s: "Utilise le boulier si besoin." };
             }},
-            "7": { t: "Ajouter ou soustraire 10, ajouter 9", type: "normal", gen: () => { 
+            "6": { t: "Doubles et moitiés", type: "normal", gen: () => { 
+                const cfg = doublesConfig;
+                let types = [];
+                if (cfg.doubles) types.push('doubles');
+                if (cfg.presque) types.push('presque');
+                if (cfg.moities) types.push('moities');
+                if (types.length === 0) types = ['doubles'];
+                let type = types[Math.floor(Math.random() * types.length)];
+
+                let caps = [];
+                if (cfg.r10) caps.push(10);
+                if (cfg.r20) caps.push(20);
+                if (cfg.r100) caps.push(100);
+                if (caps.length === 0) caps = [10];
+                let cap = caps[Math.floor(Math.random() * caps.length)];
+
+                if (type === 'doubles') {
+                    let n = Math.floor(Math.random() * (cap - 1)) + 1;
+                    return { q: `Double de ${n}`, r: n * 2, s: `${n} + ${n}.` };
+                }
+                if (type === 'presque') {
+                    let n = Math.floor(Math.random() * (cap - 1)) + 1;
+                    let b = n + (Math.random() > 0.5 ? 1 : -1);
+                    if (b <= 0) b = n + 1;
+                    return { q: `${n} + ${b} =`, r: n + b, s: `Le double de ${Math.min(n, b)}, et 1 de plus.` };
+                }
+                // moities
+                let half = Math.max(1, Math.floor(cap / 2));
+                let n = (Math.floor(Math.random() * half) + 1) * 2;
+                return { q: `Moitié de ${n}`, r: n / 2, s: "Partage en deux parts égales." };
+            }},
+            "7": { t: "Ajouter / soustraire 10", type: "normal", gen: () => { 
                 const cfg = notionOptionsConfig["7"];
                 let types = [];
                 if (cfg.plus10) types.push(0);
@@ -1048,101 +1089,62 @@
                 let n = Math.floor(Math.random() * (max - 15)) + 11; 
                 if(type === 0) return { q: `${n} + 10 =`, r: n + 10, s: "Ajoute une dizaine." };
                 if(type === 1) return { q: `${n} - 10 =`, r: n - 10, s: "Enlève une dizaine." };
-                return { q: `${n} + 9 =`, r: n + 9, s: "Ajoute 10 puis recule de 1." };
+                return { q: `${n} + 9 =`, r: n + 9, s: "+10, puis -1." };
             }},
-            "8": { t: "Compléments à D", type: "normal", gen: () => { 
-                const cfg = notionOptionsConfig["8"];
-                let maxD = Math.max(20, maxNumberLevel);
-                let diz = (Math.floor(Math.random() * 8) + 2) * 10;
-                if (diz > maxD) diz = Math.floor(maxD/10)*10;
-                if (diz < 20) diz = 20;
+            "8": { t: "Ajouter / soustraire D", type: "normal", gen: () => { 
+                const cfg = notion8Config;
+                let ops = [];
+                if (cfg.add) ops.push('+');
+                if (cfg.sub) ops.push('-');
+                if (ops.length === 0) ops = ['+'];
+                let op = ops[Math.floor(Math.random() * ops.length)];
 
-                let missingMin, missingMax;
-                if (cfg.proche && cfg.eloignee) { missingMin = 1; missingMax = 9; }
-                else if (cfg.proche) { missingMin = 1; missingMax = 4; }
-                else if (cfg.eloignee) { missingMin = 5; missingMax = 9; }
-                else { missingMin = 1; missingMax = 9; }
+                let types = [];
+                if (cfg.D) types.push('D');
+                if (cfg.sansP) types.push('sansP');
+                if (cfg.avecP) types.push('avecP');
+                if (types.length === 0) types = ['D'];
+                let calcType = types[Math.floor(Math.random() * types.length)];
 
-                let missing = missingMin + Math.floor(Math.random() * (missingMax - missingMin + 1));
-                let n = diz - missing;
-                return { q: `${n} + ... = ${diz}`, r: diz - n, s: "Cherche l'ami de 10 des unités." };
-            }},
-            "9": { t: "+/- un nombre < 10", type: "normal", gen: () => { 
-                let val = Math.floor(Math.random() * 9) + 1;
-                let max = Math.max(20, maxNumberLevel);
-                let n = Math.floor(Math.random() * (max - val - 10)) + 10;
-                let op = Math.random() > 0.5 ? '+' : '-';
-                return { q: `${n} ${op} ${val} =`, r: op === '+' ? n + val : n - val, s: "Occupe-toi des unités." };
-            }},
-            "10": { t: "+/- des D entières", type: "normal", gen: () => { 
-                const cfg = notionOptionsConfig["10"];
-                let d = (Math.floor(Math.random() * 4) + 1) * 10;
                 let max = Math.max(40, maxNumberLevel);
 
-                let variants = [];
-                if (cfg.dd) variants.push('dd');
-                if (cfg.dud) variants.push('dud');
-                if (variants.length === 0) variants = ['dud'];
-                let variant = variants[Math.floor(Math.random() * variants.length)];
-
-                let lower = d, upper = max - d - 1;
-                if (upper < lower) upper = lower;
-
-                let n;
-                if (variant === 'dd') {
-                    let lowerTens = Math.ceil(lower / 10);
-                    let upperTens = Math.floor(upper / 10);
-                    if (upperTens < lowerTens) upperTens = lowerTens;
-                    let nTens = lowerTens + Math.floor(Math.random() * (upperTens - lowerTens + 1));
-                    n = nTens * 10;
-                } else {
-                    n = lower + Math.floor(Math.random() * (upper - lower + 1));
+                if (calcType === 'D') {
+                    // Ajoute ou retire une dizaine entière à/de n'importe quel nombre
+                    let d = (Math.floor(Math.random() * 4) + 1) * 10;
+                    let n;
+                    if (op === '+') {
+                        let upper = max - d - 1;
+                        if (upper < d) upper = d;
+                        n = d + Math.floor(Math.random() * (upper - d + 1));
+                    } else {
+                        n = d + Math.floor(Math.random() * (max - d));
+                    }
+                    return { q: `${n} ${op} ${d} =`, r: op === '+' ? n + d : n - d, s: "Seulement les dizaines." };
                 }
 
-                let op = Math.random() > 0.5 ? '+' : '-';
-                return { q: `${n} ${op} ${d} =`, r: op === '+' ? n + d : n - d, s: "Occupe-toi seulement des dizaines." };
-            }},
-            "12": { t: "Ajouter deux nombres <100", type: "normal", gen: () => { 
-                const cfg = notionOptionsConfig["12"];
-                let variants = [];
-                if (cfg.sansRetenue) variants.push('none');
-                if (cfg.avecRetenue) variants.push('carry');
-                if (variants.length === 0) variants = ['none'];
-                let variant = variants[Math.floor(Math.random() * variants.length)];
-
-                let maxPart = Math.max(20, maxNumberLevel) / 2;
+                // D+U sans / avec passage : deux nombres à deux chiffres
+                let maxPart = max / 2;
                 let a, b, attempts = 0;
                 do {
-                    a = Math.floor(Math.random() * (maxPart - 5)) + 5;
-                    b = Math.floor(Math.random() * (maxPart - 5)) + 5;
+                    a = Math.floor(Math.random() * (maxPart - 10)) + 10;
+                    b = Math.floor(Math.random() * (maxPart - 10)) + 10;
                     attempts++;
-                    let unitsSum = (a % 10) + (b % 10);
-                    if (variant === 'carry' && unitsSum >= 10) break;
-                    if (variant === 'none' && unitsSum <= 9) break;
+                    if (op === '+') {
+                        let unitsSum = (a % 10) + (b % 10);
+                        if (calcType === 'avecP' && unitsSum >= 10) break;
+                        if (calcType === 'sansP' && unitsSum <= 9) break;
+                    } else {
+                        if (a < b) { const t = a; a = b; b = t; }
+                        let noBorrow = (a % 10) >= (b % 10);
+                        if (calcType === 'avecP' && !noBorrow) break;
+                        if (calcType === 'sansP' && noBorrow) break;
+                    }
                 } while (attempts < 30);
 
-                return { q: `${a} + ${b} =`, r: a + b, s: "Ajoute les dizaines, puis les unités." };
+                return { q: `${a} ${op} ${b} =`, r: op === '+' ? a + b : a - b, s: "Dizaines, puis unités." };
             }},
-            "13": { t: "Moitiés de 2 à 20, ou dizaines", type: "normal", gen: () => { 
-                let isDiz = Math.random() > 0.5;
-                let n;
-                if (isDiz) {
-                    n = (Math.floor(Math.random() * 5) + 1) * 20;
-                    if (n > maxNumberLevel) n = 20;
-                } else {
-                    n = (Math.floor(Math.random() * 10) + 1) * 2;
-                }
-                return { q: `Moitié de ${n}`, r: n / 2, s: "Partage en deux parts égales." };
-            }},
-            "15": { t: "Soustraire U à D <100", type: "normal", gen: () => { 
-                let max = Math.max(40, maxNumberLevel);
-                let d = (Math.floor(Math.random() * (max/10 - 2)) + 2) * 10;
-                if (d < 20) d = 20;
-                let u = Math.floor(Math.random() * 9) + 1;
-                return { q: `${d} - ${u} =`, r: d - u, s: "Pense au complément à 10 et recule d'une dizaine." };
-            }},
-            "P2": { t: "Table de 1, 2, 5, 10", type: "normal", gen: () => { 
-                const cfg = notionOptionsConfig["P2"];
+            "9": { t: "Multiplier par 1, 2, 5 ou 10", type: "normal", gen: () => { 
+                const cfg = notionOptionsConfig["9"];
                 let tables = [];
                 if (cfg.x1) tables.push(1);
                 if (cfg.x2) tables.push(2);
@@ -1220,17 +1222,41 @@
                 notion1ToggleHTML += `<button type="button" class="op-toggle-btn ${opsConfigNotion1[v].minus ? 'on' : ''}" id="op-1-${v}-minus" onclick="toggleOp(1, ${v}, 'minus')">-${v}</button>`;
             }
 
-            let opsToggleHTML = `<div class="ops-toggle-container" data-key="1">${notion1ToggleHTML}</div>`;
+            let opsToggleHTML = `<div class="ops-toggle-container" data-key="5">${notion1ToggleHTML}</div>`;
             for (let key in notionOptionsDefs) {
                 let inner = '';
                 notionOptionsDefs[key].forEach(opt => {
                     inner += `<button type="button" class="op-toggle-btn ${notionOptionsConfig[key][opt.id] ? 'on' : ''}" id="opt-${key}-${opt.id}" onclick="toggleNotionOption(1, '${key}', '${opt.id}')">${opt.label}</button>`;
                 });
-                if (key === '5') {
-                    inner += `<button type="button" class="op-toggle-btn ${complementRoundStart ? 'on' : ''}" id="opt-5-round" onclick="toggleComplementRoundStart(1)" title="Départ sur une dizaine ou centaine ronde, ex. 40 + ... = 100">Départ rond</button>`;
+                if (key === '4') {
+                    inner += `<button type="button" class="op-toggle-btn ${complementRoundStart ? 'on' : ''}" id="opt-4-round" onclick="toggleComplementRoundStart(1)" title="Départ sur une dizaine ou centaine ronde, ex. 40 + ... = 100">Départ rond</button>`;
                 }
                 opsToggleHTML += `<div class="ops-toggle-container" data-key="${key}">${inner}</div>`;
             }
+
+            // Notion 6 (Doubles et moitiés) : deux rangées de boutons indépendantes
+            let notion6TypeHTML = '';
+            [['doubles', 'Doubles'], ['presque', 'Presque doubles'], ['moities', 'Moitiés']].forEach(([optId, label]) => {
+                notion6TypeHTML += `<button type="button" class="op-toggle-btn ${doublesConfig[optId] ? 'on' : ''}" id="opt-6-${optId}" onclick="toggleDoublesOption(1, '${optId}')">${label}</button>`;
+            });
+            let notion6RangeHTML = '';
+            [['r10', '< 10'], ['r20', '< 20'], ['r100', '< 100']].forEach(([optId, label]) => {
+                notion6RangeHTML += `<button type="button" class="op-toggle-btn ${doublesConfig[optId] ? 'on' : ''}" id="opt-6-${optId}" onclick="toggleDoublesOption(1, '${optId}')">${label}</button>`;
+            });
+            opsToggleHTML += `<div class="ops-toggle-container" data-key="6">${notion6TypeHTML}</div>`;
+            opsToggleHTML += `<div class="ops-toggle-container" data-key="6">${notion6RangeHTML}</div>`;
+
+            // Notion 8 (Ajouter / soustraire D) : deux rangées de boutons indépendantes
+            let notion8OpHTML = '';
+            [['add', 'Ajouter'], ['sub', 'Soustraire']].forEach(([optId, label]) => {
+                notion8OpHTML += `<button type="button" class="op-toggle-btn ${notion8Config[optId] ? 'on' : ''}" id="opt-8-${optId}" onclick="toggleNotion8Option(1, '${optId}')">${label}</button>`;
+            });
+            let notion8TypeHTML = '';
+            [['D', 'D'], ['sansP', 'D+U sans passage'], ['avecP', 'D+U avec passage']].forEach(([optId, label]) => {
+                notion8TypeHTML += `<button type="button" class="op-toggle-btn ${notion8Config[optId] ? 'on' : ''}" id="opt-8-${optId}" onclick="toggleNotion8Option(1, '${optId}')">${label}</button>`;
+            });
+            opsToggleHTML += `<div class="ops-toggle-container" data-key="8">${notion8OpHTML}</div>`;
+            opsToggleHTML += `<div class="ops-toggle-container" data-key="8">${notion8TypeHTML}</div>`;
 
             const card = document.createElement('div');
             card.className = 'player-card';
@@ -1292,7 +1318,7 @@
             if (btn) btn.classList.toggle('on', opsConfigNotion1[v][sign]);
 
             const p = players.find(x => x.id === playerId);
-            if (p && p.currentProg === '1' && !p.evalFinished) {
+            if (p && p.currentProg === '5' && !p.evalFinished) {
                 startQuestion(playerId);
             }
         }
@@ -1398,7 +1424,9 @@
             let newQ, attempts = 0;
             do {
                 newQ = progressionData[p.currentProg].gen();
-                newQ.type = progressionData[p.currentProg].type;
+                // Les notions "normales" imposent leur type ; une notion au type variable
+                // (ex. "0", qui mélange lecture et inscription) laisse gen() le fixer lui-même.
+                if (progressionData[p.currentProg].type) newQ.type = progressionData[p.currentProg].type;
                 attempts++;
             } while (p.lastQKey && questionKey(newQ) === p.lastQKey && attempts < 30);
             p.currentQ = newQ;

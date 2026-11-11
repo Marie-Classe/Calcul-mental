@@ -650,7 +650,8 @@
         .band-verdict { font-size: 0.34em; font-weight: 700; letter-spacing: 0; line-height: 1.2; }
         .exercise-box.ok .band-verdict { color: #065f46; }
         .exercise-box.ko .band-verdict { color: #991b1b; }
-        .band-correction { line-height: 1.1; }
+        .band-correction { line-height: 1.1; display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; gap: 0 0.25em; }
+        .band-correction .answer-number { vertical-align: baseline; margin: 0; }
         .feedback-area:empty { display: none; }
         .exercise-box .exercise-display { min-height: 16vh; font-size: min(11vw, 8.5vh, 5.4rem); }
 
@@ -1760,17 +1761,9 @@
 
             // Correction de la question qui vient d'être traitée
             let correction;
-            if (q.type === "write_abacus") {
-                // On lit aussi ce que l'élève a réellement placé sur le boulier.
-                if (userVal === null) {
-                    correction = `Il fallait afficher ${big(q.r)}`;
-                } else if (userVal === q.r) {
-                    correction = `Tu as affiché ${big(userVal)}`;
-                } else {
-                    correction = `Tu as affiché ${userVal} — il fallait ${big(q.r)}`;
-                }
-            } else if (q.type === "read_abacus") {
-                correction = `C'était ${big(q.r)}`;
+            if (q.type === "write_abacus" || q.type === "read_abacus") {
+                // Juste le nombre, sans phrase : c'est lui qu'on veut voir.
+                correction = big(q.r);
             } else if (q.q.includes('...')) {
                 correction = q.q.replace('...', big(q.r));
             } else if (q.q.endsWith('=')) {

@@ -666,6 +666,44 @@
         @media (max-width: 700px) {
             .abacus-frame, .abacus-labels { zoom: 0.72; }
         }
+
+        .btn-check-key { display: none; background: #10b981; color: #fff; border-color: #059669; box-shadow: 0 3px 0 #059669; }
+
+        /* ===== Téléphone : tout voir d'un coup (✔ sur le clavier, textes inutiles retirés) ===== */
+        @media (max-width: 700px) {
+            .abacus-header { display: none; }
+            .btn-val-big { display: none; }
+            .btn-check-key { display: flex; align-items: center; justify-content: center; }
+            .btn-zero { grid-column: span 1; }
+            .exercise-box { padding: 4px 8px; }
+            .exercise-box .exercise-display { min-height: 76px; font-size: min(10.5vw, 3.1rem); padding: 0; }
+            .band-verdict { font-size: 0.36em; }
+            input.answer-input { font-size: 1.7rem; padding: 2px 8px; }
+            .numpad { gap: 4px; }
+            .num-btn { font-size: 1.8rem; padding: 6px 0; border-radius: 10px; }
+            .btn-del { font-size: 1.4rem; }
+            .btn-choose-prog { font-size: 1.05rem; padding: 7px 10px; }
+            .op-toggle-btn { font-size: 1rem; padding: 5px 10px; }
+            .ops-wrap .help-btn, .choose-row .help-btn { font-size: 1.2rem; padding: 2px 8px; }
+            .ops-wrap .ops-toggle-container.visible { padding-right: 50px; }
+            .player-card { padding: 8px; gap: 6px; }
+            .progress-indicator { font-size: 0.8rem; margin: 0; }
+            .feedback-area { min-height: 0; }
+            .abacus-frame, .abacus-labels { zoom: 0.58; }
+            .abacus-display { font-size: 1.5rem; padding: 0 10px; }
+            .abacus-label-item { font-size: 1.6rem; }
+            .abacus-card { padding: 8px; gap: 2px; }
+            .abacus-frame, .abacus-labels { zoom: 0.54; }
+            .abacus-labels { margin-top: 0; }
+            .abacus-display { margin-top: 2px; font-size: 1.3rem; }
+            .container { gap: 6px !important; padding: 6px !important; }
+            .exercise-box .exercise-display { min-height: 62px; font-size: min(10vw, 2.8rem); }
+            .num-btn { padding: 3px 0; font-size: 1.7rem; }
+            .btn-choose-prog { padding: 5px 8px; }
+            body.mode-entrainement .progress-indicator { display: none; }
+            body.mode-evaluation .progress-indicator { display: block; }
+            .player-card { gap: 4px; }
+        }
     </style>
 </head>
 <body class="mode-entrainement">
@@ -1501,6 +1539,7 @@
                         <button class="num-btn" onclick="typeNum(1, 9)">9</button>
                         <button class="num-btn btn-del" onclick="delNum(1)">✖</button>
                         <button class="num-btn btn-zero" onclick="typeNum(1, 0)">0</button>
+                        <button class="num-btn btn-check-key" onclick="validate(1)" title="Valider" aria-label="Valider">✔</button>
                     </div>
 
                     <div id="feedback-1" class="feedback-area"></div>

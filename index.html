@@ -428,7 +428,7 @@
             display: flex;
             width: 100%;
             max-width: 540px; /* 5 rangs */
-            height: 525px;
+            height: 485px; /* 6px sous les billes du bas, comme au-dessus des billes du haut */
             position: relative;
             box-shadow: 0 12px 25px rgba(0,0,0,0.15);
             padding: 0 12px;
@@ -661,6 +661,11 @@
         .prog-btn b { min-width: 34px; }
         .prog-grid { max-height: 62vh; }
         .op-toggle-btn { font-size: min(1.3rem, 4vw); padding: 8px 14px; }
+
+        /* Téléphone : boulier réduit (l'ordinateur garde sa taille) */
+        @media (max-width: 700px) {
+            .abacus-frame, .abacus-labels { zoom: 0.72; }
+        }
     </style>
 </head>
 <body class="mode-entrainement">

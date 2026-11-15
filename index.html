@@ -663,14 +663,14 @@
         .op-toggle-btn { font-size: min(1.3rem, 4vw); padding: 8px 14px; }
 
         /* Téléphone : boulier réduit (l'ordinateur garde sa taille) */
-        @media (max-width: 700px) {
+        @media (max-width: 700px), (orientation: landscape) and (max-height: 520px) {
             .abacus-frame, .abacus-labels { zoom: 0.72; }
         }
 
         .btn-check-key { display: none; background: #10b981; color: #fff; border-color: #059669; box-shadow: 0 3px 0 #059669; }
 
         /* ===== Téléphone : tout voir d'un coup (✔ sur le clavier, textes inutiles retirés) ===== */
-        @media (max-width: 700px) {
+        @media (max-width: 700px), (orientation: landscape) and (max-height: 520px) {
             .abacus-header { display: none; }
             .btn-val-big { display: none; }
             .btn-check-key { display: flex; align-items: center; justify-content: center; }
@@ -704,6 +704,82 @@
             body.mode-evaluation .progress-indicator { display: block; }
             .player-card { gap: 4px; }
         }
+
+        /* ===== Téléphone en paysage : 2 colonnes (exercice | boulier), comme sur ordinateur ===== */
+        @media (orientation: landscape) and (max-height: 520px) {
+            .container { grid-template-columns: 1fr 1fr !important; gap: 8px !important; padding: 6px 8px !important; align-items: start; }
+            header { min-height: 40px; }
+            #header-content { padding: 6px 52px 6px 12px; gap: 8px; }
+            #header-toggle-btn { top: 5px; width: 28px; height: 28px; }
+            .main-title { font-size: 1.7rem; }
+            .player-card { padding: 4px 6px; gap: 3px; }
+            .abacus-card { padding: 4px; }
+            .abacus-frame, .abacus-labels { zoom: 0.5; }
+            .exercise-box { padding: 2px 8px; }
+            .exercise-box .exercise-display { min-height: 36px; font-size: min(7vh, 2.2rem); }
+            .band-verdict { font-size: 0.32em; }
+            input.answer-input { font-size: 1.2rem; padding: 0 8px; line-height: 1.1; }
+            .num-btn { padding: 0; height: 29px; font-size: 1.25rem; line-height: 1; }
+            .btn-del { font-size: 1.1rem; }
+            .numpad { gap: 2px; }
+            .btn-choose-prog { font-size: 0.9rem; padding: 2px 8px; }
+            .op-toggle-btn { font-size: 0.85rem; padding: 1px 8px; min-width: 34px; }
+            .ops-toggle-container { padding: 4px; gap: 4px; }
+            .prog-btn { font-size: 0.95rem; padding: 6px 8px; }
+            .abacus-display { font-size: 1.1rem; }
+            .abacus-label-item { font-size: 1.2rem; }
+        }
+        @media (orientation: landscape) and (max-height: 400px) {
+            .abacus-frame, .abacus-labels { zoom: 0.43; }
+        }
+        @media (max-width: 700px) {
+            .op-toggle-btn { font-size: 1rem; padding: 5px 10px; }
+        }
+
+        /* ===== Liste de calculs : 4 à 6 calculs côte à côte ===== */
+        .seg-icon { font-size: 1.3rem; padding: 0 6px 0 4px; align-self: center; }
+        body.mode-evaluation #list-config-container { display: none; }
+        .calc-list { display: none; gap: 6px; }
+        .calc-list.visible { display: grid; grid-template-columns: repeat(3, 1fr); }
+        .calc-list.visible.n4 { grid-template-columns: repeat(2, 1fr); }
+        .calc-chip {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 6px 8px; min-width: 0;
+            border: 2px solid #cbd5e1; border-radius: 12px; background: #fff;
+            font-size: min(1.5rem, 4.2vw); font-weight: 700; color: #1e293b;
+            cursor: pointer; transition: background 0.15s, border-color 0.15s;
+        }
+        .calc-chip-n {
+            flex: none; width: 1.55em; height: 1.55em; border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: var(--current-mode); color: #fff; font-size: 0.65em;
+        }
+        .calc-chip-q { white-space: nowrap; overflow: hidden; text-overflow: clip; }
+        .calc-chip.active { border-color: var(--current-mode); outline: 3px solid var(--current-mode); outline-offset: 1px; background: #f5f3ff; }
+        .calc-chip.ok { background: #d1fae5; border-color: #34d399; color: #047857; cursor: default; }
+        .calc-chip.ko { background: #fee2e2; border-color: #f87171; color: #b91c1c; cursor: default; }
+        .calc-chip.ok .calc-chip-n { background: #10b981; }
+        .calc-chip.ko .calc-chip-n { background: #ef4444; }
+
+        /* Avec la liste, on resserre le reste pour que tout tienne dans la fenêtre */
+        .exercise-container:has(.calc-list.visible) { display: flex; flex-direction: column; gap: 6px; }
+        .exercise-container:has(.calc-list.visible) .exercise-box .exercise-display { min-height: 9vh; font-size: min(11vw, 6.6vh, 4.4rem); }
+        .exercise-container:has(.calc-list.visible) .btn-val-big { width: min(20vw, 9vh, 96px); height: min(20vw, 9vh, 96px); font-size: min(8vw, 5vh, 3rem); }
+        .exercise-container:has(.calc-list.visible) input.answer-input { font-size: min(9vw, 4.4vh, 3.2rem); }
+        .exercise-container:has(.calc-list.visible) .num-btn { font-size: min(8vw, 3.8vh, 3rem); padding: min(3vw, 0.5vh) 0; }
+        .exercise-container:has(.calc-list.visible) .numpad { gap: min(8px, 0.8vh); }
+        @media (max-width: 700px), (orientation: landscape) and (max-height: 520px) {
+            .calc-chip { font-size: 1rem; padding: 3px 4px; gap: 4px; border-radius: 8px; }
+            .calc-list { gap: 4px; }
+            .exercise-container:has(.calc-list.visible) .exercise-box .exercise-display { min-height: 52px; font-size: min(10vw, 2.6rem); }
+            .exercise-container:has(.calc-list.visible) .num-btn { padding: 2px 0; font-size: 1.5rem; }
+        }
+        @media (orientation: landscape) and (max-height: 520px) {
+            .calc-chip { font-size: 0.8rem; padding: 1px 3px; }
+            .exercise-container:has(.calc-list.visible) .exercise-box .exercise-display { min-height: 30px; font-size: 1.7rem; }
+            .exercise-container:has(.calc-list.visible) .num-btn { height: 24px; padding: 0; font-size: 1.05rem; }
+            .exercise-container:has(.calc-list.visible) input.answer-input { font-size: 1.05rem; }
+        }
     </style>
 </head>
 <body class="mode-entrainement">
@@ -735,7 +811,15 @@
                     <button class="tool-btn timer-btn" data-val="10" onclick="setTimer(10, this)">10s</button>
                 </div>
 
-                <div class="segmented" id="color-config-container" title="Couleur des billes du boulier">
+                <div class="segmented" id="list-config-container" title="Nombre de calculs affichés en même temps (1 = un seul)">
+                <span class="seg-icon" aria-hidden="true">📋</span>
+                <button class="tool-btn list-btn active" onclick="setListSize(1, this)">1</button>
+                <button class="tool-btn list-btn" onclick="setListSize(4, this)">4</button>
+                <button class="tool-btn list-btn" onclick="setListSize(5, this)">5</button>
+                <button class="tool-btn list-btn" onclick="setListSize(6, this)">6</button>
+            </div>
+
+            <div class="segmented" id="color-config-container" title="Couleur des billes du boulier">
                     <button class="tool-btn color-btn active" data-val="multi" onclick="setAbacusColors('multi')">🌈</button>
                     <button class="tool-btn color-btn" data-val="bi" onclick="setAbacusColors('bi')">🔴🔵</button>
                 </div>
@@ -1517,6 +1601,7 @@
                 <div id="ops-toggles-1" class="ops-wrap">${opsToggleHTML}<button id="btn-help-1" class="help-btn" onclick="showHelp(1)" title="Indice" aria-label="Indice">💡</button></div>
 
                 <div id="exercise-container-1" class="exercise-container">
+                    <div id="calc-list-1" class="calc-list"></div>
                     <div class="exercise-box">
                         <div id="display-1" class="exercise-display">...</div>
                         <button class="btn-val-big" id="btn-val-1" onclick="validate(1)" title="Valider (Entrée)">✔</button>
@@ -1589,13 +1674,13 @@
 
         function typeNum(id, num) {
             const p = players.find(x => x.id === id);
-            if (p && p.awaitingNext) return; // la correction est affichée, Entrée passe à la suite
+            if (p && (p.awaitingNext || p.listIdle)) return; // la correction est affichée, Entrée passe à la suite
             const input = document.getElementById(`input-${id}`);
             if(input.value.length < 5 && !input.disabled) input.value += num;
         }
         function delNum(id) {
             const p = players.find(x => x.id === id);
-            if (p && p.awaitingNext) return;
+            if (p && (p.awaitingNext || p.listIdle)) return;
             const input = document.getElementById(`input-${id}`);
             if(!input.disabled) input.value = input.value.slice(0, -1);
         }
@@ -1631,6 +1716,7 @@
             clearInterval(p.timer);
             p.awaitingNext = false; p.pendingEnd = false; p.lastQKey = null;
             abacusInteractionLocked = false;
+            hideListArea(id); p.listIdle = false; p.activeIdx = null;
             document.getElementById(`exercise-container-${id}`).style.display = 'none';
             document.getElementById(`prog-grid-${id}`).style.display = 'grid';
             document.getElementById(`btn-choose-${id}`).innerText = "Choisir une notion CP";
@@ -1661,21 +1747,32 @@
         }
 
         // keepFeedback = true quand on enchaîne : le retour sur la question précédente reste affiché
-        function startQuestion(id, keepFeedback = false) {
+        function startQuestion(id, keepFeedback = false, presetQ = null) {
             const p = players.find(x => x.id === id);
             if(!p.currentProg || p.evalFinished) return;
 
-            // On évite de retomber tout de suite sur le même nombre / calcul.
-            let newQ, attempts = 0;
-            do {
-                newQ = progressionData[p.currentProg].gen();
-                // Les notions "normales" imposent leur type ; une notion au type variable
-                // (ex. "0", qui mélange lecture et inscription) laisse gen() le fixer lui-même.
-                if (progressionData[p.currentProg].type) newQ.type = progressionData[p.currentProg].type;
-                attempts++;
-            } while (p.lastQKey && questionKey(newQ) === p.lastQKey && attempts < 30);
+            // Mode « liste de calculs » : on génère la liste, l'élève choisira ensuite son calcul.
+            if (!presetQ && listModeActive()) { generateList(id); return; }
+
+            let newQ;
+            if (presetQ) {
+                newQ = presetQ; // calcul choisi dans la liste
+            } else {
+                // On évite de retomber tout de suite sur le même nombre / calcul.
+                let attempts = 0;
+                do {
+                    newQ = progressionData[p.currentProg].gen();
+                    // Les notions "normales" imposent leur type ; une notion au type variable
+                    // (ex. "0" / "P0", qui mélange lecture et inscription) laisse gen() le fixer lui-même.
+                    if (progressionData[p.currentProg].type) newQ.type = progressionData[p.currentProg].type;
+                    attempts++;
+                } while (p.lastQKey && questionKey(newQ) === p.lastQKey && attempts < 30);
+                p.lastQKey = questionKey(newQ);
+                hideListArea(id);
+                p.activeIdx = null;
+            }
             p.currentQ = newQ;
-            p.lastQKey = questionKey(newQ);
+            p.listIdle = false;
 
             p.awaitingNext = false;
             p.pendingEnd = false;
@@ -1717,6 +1814,119 @@
 
             updateProgress(id);
             runTimer(id);
+        }
+
+        // =====================================================================
+        // LISTE DE CALCULS (entraînement) : 4 à 6 calculs affichés en même temps, pour que
+        // chaque élève prenne le sien à son rythme. Un clic sur un calcul l'affiche dans la bande
+        // beige comme d'habitude ; le bouton vert (ou Entrée) le corrige, un second appui revient à la liste.
+        // =====================================================================
+        let listSize = 1; // 1 = un calcul à la fois (comportement habituel)
+        function listModeActive() { return listSize > 1 && currentMode === 'mode-entrainement'; }
+
+        function chipLabel(q) {
+            if (q.type === 'read_abacus') return '👁️';
+            const txt = q.q.replace(/<[^>]+>/g, '').replace(/\s*=\s*$/, '').replace('...', '…');
+            return q.type === 'write_abacus' ? `✏️ ${txt}` : txt;
+        }
+
+        function renderList(id) {
+            const p = players.find(x => x.id === id);
+            const box = document.getElementById(`calc-list-${id}`);
+            if (!box) return;
+            if (!p || !listModeActive() || !p.list || !p.list.length) {
+                box.className = 'calc-list';
+                box.innerHTML = '';
+                return;
+            }
+            box.className = `calc-list visible n${p.list.length}`;
+            box.innerHTML = p.list.map((it, i) => {
+                const state = it.done ? it.done : (p.activeIdx === i ? 'active' : '');
+                return `<button type="button" class="calc-chip ${state}" onclick="selectCalc(${id}, ${i})">` +
+                       `<span class="calc-chip-n">${i + 1}</span><span class="calc-chip-q">${chipLabel(it.q)}</span></button>`;
+            }).join('');
+        }
+
+        function hideListArea(id) {
+            const box = document.getElementById(`calc-list-${id}`);
+            if (box) { box.className = 'calc-list'; box.innerHTML = ''; }
+        }
+
+        // État « on attend qu'un élève choisisse un calcul ».
+        function showListIdle(id) {
+            const p = players.find(x => x.id === id);
+            clearInterval(p.timer);
+            const badge = document.getElementById(`timer-badge-${id}`);
+            if (badge) badge.style.display = 'none';
+            p.activeIdx = null; p.listIdle = true; p.awaitingNext = false; p.pendingEnd = false;
+            abacusInteractionLocked = false;
+            abacusValueHidden = false;
+            resetAbacusOnly();
+            updateAbacusTotalDisplay();
+
+            const input = document.getElementById(`input-${id}`);
+            input.disabled = false; input.value = ''; input.placeholder = '?';
+            const disp = document.getElementById(`display-${id}`);
+            disp.innerHTML = '👆';
+            disp.closest('.exercise-box').classList.remove('ok', 'ko');
+            const help = document.getElementById(`help-box-${id}`);
+            help.style.display = 'none'; help.innerHTML = '';
+            const fb = document.getElementById(`feedback-${id}`);
+            fb.className = 'feedback-area'; fb.innerHTML = '';
+            renderList(id);
+            updateProgress(id);
+        }
+
+        // Nouvelle liste de calculs, tous différents.
+        function generateList(id) {
+            const p = players.find(x => x.id === id);
+            if (!p.currentProg) return;
+            const prog = progressionData[p.currentProg];
+            const items = [], seen = new Set();
+            for (let i = 0; i < listSize; i++) {
+                let q, attempts = 0;
+                do {
+                    q = prog.gen();
+                    if (prog.type) q.type = prog.type;
+                    attempts++;
+                } while (seen.has(questionKey(q)) && attempts < 40);
+                seen.add(questionKey(q));
+                items.push({ q, done: null });
+            }
+            p.list = items;
+            p.currentQ = items[0].q; // jamais nul : les autres fonctions s'y réfèrent
+            showListIdle(id);
+        }
+
+        // Après la correction : retour à la liste (ou nouvelle liste si tous les calculs sont faits).
+        function finishListItem(id) {
+            const p = players.find(x => x.id === id);
+            p.awaitingNext = false;
+            if (p.list.every(it => it.done)) { generateList(id); return true; }
+            showListIdle(id);
+            return false;
+        }
+
+        // Un élève choisit un calcul de la liste.
+        function selectCalc(id, i) {
+            const p = players.find(x => x.id === id);
+            if (!p || !listModeActive() || !p.currentProg || p.evalFinished || !p.list) return;
+            if (p.awaitingNext && finishListItem(id)) return; // la liste vient d'être renouvelée
+            const it = p.list[i];
+            if (!it || it.done || p.activeIdx === i) return;
+            p.activeIdx = i;
+            p.listIdle = false;
+            startQuestion(id, false, it.q);
+            renderList(id);
+        }
+
+        // Nombre de calculs affichés en même temps : 1 (un seul), 4, 5 ou 6.
+        function setListSize(n, btnElem) {
+            listSize = n;
+            document.querySelectorAll('.list-btn').forEach(b => b.classList.toggle('active', b === btnElem));
+            players.forEach(p => {
+                if (p.currentProg && !p.evalFinished) startQuestion(p.id);
+            });
         }
 
         function runTimer(id) {
@@ -1769,6 +1979,10 @@
         function validate(id) {
             const p = players.find(x => x.id === id);
             if (!p || !p.currentProg || p.evalFinished) return;
+
+            if (p.listIdle) return; // liste affichée : aucun calcul choisi pour l'instant
+
+            if (p.awaitingNext && listModeActive()) { finishListItem(id); return; }
 
             if (p.awaitingNext) {
                 p.awaitingNext = false;
@@ -1841,6 +2055,11 @@
 
             // On attend un second appui sur Entrée (ou ✔) avant d'enchaîner.
             p.awaitingNext = true;
+
+            if (listModeActive() && p.list && p.activeIdx !== null && p.list[p.activeIdx]) {
+                p.list[p.activeIdx].done = (userVal === q.r) ? 'ok' : 'ko';
+                renderList(id);
+            }
         }
 
         function endEvaluation(id) {
@@ -1880,7 +2099,16 @@
             try { localStorage.setItem('abacusColors', mode); } catch (e) {}
         }
 
+        // Téléphone en paysage : l'en-tête se replie tout seul pour laisser la place à l'exercice.
+        const landscapePhone = window.matchMedia('(orientation: landscape) and (max-height: 520px)');
+        function syncHeaderToOrientation() {
+            const header = document.querySelector('header');
+            if (header && landscapePhone.matches !== header.classList.contains('collapsed')) toggleHeader();
+        }
+        landscapePhone.addEventListener('change', syncHeaderToOrientation);
+
         window.onload = () => {
+            syncHeaderToOrientation();
             let savedColors = 'multi';
             try { savedColors = localStorage.getItem('abacusColors') || 'multi'; } catch (e) {}
             setAbacusColors(savedColors);
